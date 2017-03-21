@@ -1,9 +1,22 @@
+from enum import Enum
+
+
 class Graph(object):
     def __init__(self):
         self.nodes_number = 0
-        self.nodes = set()
+        self.nodes = dict()
         self.starting_nodes = list()
         super(Graph, self).__init__()
+
+    def get_burning_nodes(self):
+        bnodes = set()
+        for node_id in self.nodes:
+            if self.nodes[node_id].state == NodeState.BURNING:
+                bnodes.add(node_id)
+        return bnodes
+
+    def get_starting_nodes(self):
+        return self.starting_nodes
 
     def from_file(self, input_file):
         """ Generate graph from file format:
@@ -22,7 +35,7 @@ class Graph(object):
             self.starting_nodes = f.readline().split()
             self.starting_nodes = [Node(s) for s in self.starting_nodes]
             for node_id in xrange(self.nodes_number):
-                self.nodes.add(Node(node_id))
+                self.nodes[node_id] = Node(node_id)
             for line in f:
                 v1, v2 = line.split()
                 v1, v2 = Node(v1), Node(v2)
@@ -34,6 +47,7 @@ class Node(object):
     def __init__(self, node_id, value=None):
         self.id = node_id
         self.neighbors = set()
+        self.state = NodeState.UNTOUCHED
         self.value = value
         super(Node, self).__init__()
 
@@ -47,3 +61,6 @@ class Node(object):
 
     def __eq__(self, other):
         return self.id == other.id
+
+
+NodeState = Enum('UNTOUCHED', 'DEFENDED', 'BURNING')
