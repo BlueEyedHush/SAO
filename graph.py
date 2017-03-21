@@ -1,5 +1,7 @@
 from enum import Enum
 
+NodeState = Enum('NodeState', 'UNTOUCHED DEFENDED BURNING')
+
 
 class Graph(object):
     def __init__(self):
@@ -12,7 +14,7 @@ class Graph(object):
         bnodes = set()
         for node_id in self.nodes:
             if self.nodes[node_id].state == NodeState.BURNING:
-                bnodes.add(node_id)
+                bnodes.add(self.nodes[node_id])
         return bnodes
 
     def get_starting_nodes(self):
@@ -37,10 +39,14 @@ class Graph(object):
             for node_id in xrange(self.nodes_number):
                 self.nodes[node_id] = Node(node_id)
             for line in f:
-                v1, v2 = line.split()
-                v1, v2 = Node(v1), Node(v2)
-                v1.add_neighbor(v2)
+                v1, v2 = map(int, line.split())
+                self.nodes[v1].add_neighbor(self.nodes[v2])
         return self.starting_nodes
+
+    def print_graph(self):
+        """ For the time being a dumb method to help with debugging """
+        for node in self.nodes.values():
+            print "Node {}: {}".format(node.id, node.state)
 
 
 class Node(object):
@@ -55,12 +61,9 @@ class Node(object):
         self.neighbors.add(node)
         node.neighbors.add(self)
 
-    def print_graph(self):
+    def print_node(self):
         """ Print the graph structure accessible from this node """
-        raise NotImplementedError
+        print "Node {}: {}".format(self.id, self.neighbors)
 
     def __eq__(self, other):
         return self.id == other.id
-
-
-NodeState = Enum('UNTOUCHED', 'DEFENDED', 'BURNING')
