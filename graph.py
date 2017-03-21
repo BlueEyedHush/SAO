@@ -20,6 +20,7 @@ class Graph(object):
     def get_starting_nodes(self):
         return self.starting_nodes
 
+    # TODO: this method should be static and return new Graph instance
     def from_file(self, input_file):
         """ Generate graph from file format:
         n m s

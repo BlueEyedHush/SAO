@@ -1,6 +1,11 @@
 from graph import Graph, NodeState
 
 
+def set_initial_nodes_on_fire(graph, init_nodes):
+    for init_node in init_nodes:
+        graph.nodes[init_node].state = NodeState.BURNING
+
+
 def spreading_finished(graph):
     burning_nodes = graph.get_burning_nodes()
     for burning_node in burning_nodes:
@@ -37,9 +42,8 @@ def evaluate_result(graph):
     return result
 
 
-def simulation(graph, solution, starting_nodes, ff_per_step):
-    for sn in starting_nodes:
-        graph.nodes[sn].state = NodeState.BURNING
+def simulation(graph, solution, init_nodes, ff_per_step):
+    set_initial_nodes_on_fire(graph, init_nodes)
 
     solution_index = 0
     iterations = 0
@@ -51,9 +55,3 @@ def simulation(graph, solution, starting_nodes, ff_per_step):
 
     result = evaluate_result(graph)
     print "Result: {} (saved nodes)".format(result)
-
-
-g = Graph()
-g.from_file('graphs/simple.txt')
-solution = [1, 0, 3, 4, 2]
-simulation(g, solution, [3], 1)
