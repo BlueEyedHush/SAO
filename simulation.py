@@ -6,7 +6,7 @@ def set_initial_nodes_on_fire(graph, init_nodes, transitions):
     transitions[0] = list()
     for init_node in init_nodes:
         graph.nodes[init_node].state = NodeState.BURNING
-        transitions[0].append((init_nodes, NodeState.BURNING))
+        transitions[0].append((init_node, NodeState.BURNING))
 
     return transitions
 
@@ -73,3 +73,5 @@ def simulation(graph, solution, init_nodes, ff_per_step):
 
     result = evaluate_result(graph)
     print "Result: {} (saved nodes)".format(result)
+
+    return transitions

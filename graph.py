@@ -10,6 +10,14 @@ class Graph(object):
         self.starting_nodes = list()
         super(Graph, self).__init__()
 
+    def get_edges(self):
+        edges = list()
+        for node_id in self.nodes:
+            for neighbor in self.nodes[node_id].neighbors:
+                if (neighbor.id, node_id) not in edges:
+                    edges.append((node_id, neighbor.id))
+        return edges
+
     def get_burning_nodes(self):
         bnodes = set()
         for node_id in self.nodes:
