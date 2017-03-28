@@ -31,6 +31,7 @@ def simple(G, init_nodes, debug_level="disabled"):
         log("solution: {}, score: {} /smaller-better/".format(sol, score))
 
     def calc_next_solution(current):
+        G.reset_metadata()
         new_solution = list(current)
         random.shuffle(new_solution)
         transitions, new_score = simulation(G, new_solution, init_nodes, ffs_per_step)[0:2]
@@ -42,7 +43,6 @@ def simple(G, init_nodes, debug_level="disabled"):
                 visualize_simulation(G, transitions, new_solution)
 
         return new_solution, new_score
-
 
     current_solution, current_score = calc_next_solution(G.get_nodes())
 
@@ -57,3 +57,6 @@ def simple(G, init_nodes, debug_level="disabled"):
             log("rejected")
 
     return current_score, current_score
+
+if __name__ == "__main__":
+    test_simple_solver()
