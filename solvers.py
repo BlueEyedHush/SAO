@@ -1,6 +1,8 @@
 
 import random
 from simulation import simulation
+from visualize import visualize_simulation
+from sys import stdin
 
 def test_simple_solver():
     from graph import Graph
@@ -8,7 +10,7 @@ def test_simple_solver():
     g2.from_file('graphs/random.txt')
     init_nodes2 = [3]
 
-    simple(g2, init_nodes2, "logging")
+    simple(g2, init_nodes2, "stepping")
 
 def simple(G, init_nodes, debug_level="disabled"):
     '''
@@ -22,24 +24,30 @@ def simple(G, init_nodes, debug_level="disabled"):
         if(debug_level == 'logging' or debug_level == 'stepping'):
             print msg
 
-    iter_no = 10
+    iter_no = 5
     ffs_per_step = 1
-
-    def calc_next_solution(current):
-        new_solution = list(current)
-        random.shuffle(new_solution)
-        new_score = simulation(G, new_solution, init_nodes, ffs_per_step)[1]
-        return new_solution, new_score
 
     def log_solution(sol, score):
         log("solution: {}, score: {} /smaller-better/".format(sol, score))
 
+    def calc_next_solution(current):
+        new_solution = list(current)
+        random.shuffle(new_solution)
+        transitions, new_score = simulation(G, new_solution, init_nodes, ffs_per_step)[0:2]
+        log_solution(new_solution, new_score)
+
+        if debug_level == 'stepping':
+            print "Do you want to see visualization of newly computed solution? [y/N]: "
+            if stdin.readline().strip().startswith("y"):
+                visualize_simulation(G, transitions, new_solution)
+
+        return new_solution, new_score
+
+
     current_solution, current_score = calc_next_solution(G.get_nodes())
-    log_solution(current_solution, current_score)
 
     for i in range(0, iter_no):
         new_solution, new_score = calc_next_solution(current_solution)
-        log_solution(new_solution, new_score)
 
         if new_score < current_score:
             current_solution = new_solution
