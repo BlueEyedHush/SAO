@@ -74,4 +74,4 @@ def simulation(graph, solution, init_nodes, ff_per_step):
     result = evaluate_result(graph)
     print "Result: {} (saved nodes)".format(result)
 
-    return transitions
+    return transitions, iterations, result
