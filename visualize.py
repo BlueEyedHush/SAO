@@ -59,7 +59,7 @@ def draw_next_step(args):
 
         step = future_transitions.keys()[0]
         transition = future_transitions.pop(step)
-        shown_transitions.append(transition)
+        shown_transitions[step] = transition
 
         for node_id, state in transition:
             if state == NodeState.BURNING:
@@ -74,7 +74,27 @@ def draw_next_step(args):
 
 
 def draw_previous_step(args):
-    print "Not implemented yet :("
+    print "Falling back to previous step..."
+
+    future_transitions = args['future_transitions']
+    shown_transitions = args['shown_transitions']
+
+    if shown_transitions:
+
+        step = shown_transitions.keys()[-1]
+        transition = shown_transitions.pop(step)
+        future_transitions[step] = transition
+
+        for node_id, state in transition:
+            if state == NodeState.BURNING:
+                args['burning_nodes'].remove(node_id)
+                args['untouched_nodes'].append(node_id)
+            elif state == NodeState.DEFENDED:
+                args['defended_nodes'].remove(node_id)
+                args['untouched_nodes'].append(node_id)
+
+        draw_graph(args['graph'], args['untouched_nodes'], args['burning_nodes'], args['defended_nodes'], args['edges'],
+                   args['positions'], args['labels'], args['solution'])
 
 
 def visualize_simulation(graph, transitions, solution):
@@ -88,7 +108,7 @@ def visualize_simulation(graph, transitions, solution):
     for node_id in graph.nodes:
         labels[node_id] = node_id
 
-    shown_transitions = list()
+    shown_transitions = dict()
 
     untouched_nodes = list(graph.nodes)
     burning_nodes = list()
