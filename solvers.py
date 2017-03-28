@@ -4,14 +4,6 @@ from simulation import simulation
 from visualize import visualize_simulation
 from sys import stdin
 
-def test_simple_solver():
-    from graph import Graph
-    g2 = Graph()
-    g2.from_file('graphs/random.txt')
-    init_nodes2 = [3]
-
-    simple(g2, init_nodes2, "stepping")
-
 def simple(G, init_nodes, debug_level="disabled"):
     '''
     :param G:
@@ -57,6 +49,14 @@ def simple(G, init_nodes, debug_level="disabled"):
             log("rejected")
 
     return current_score, current_score
+
+def test_simple_solver():
+    from graph import Graph
+    g2 = Graph()
+    g2.from_file('graphs/random.txt')
+    init_nodes2 = [3]
+
+    simple(g2, init_nodes2, "stepping")
 
 if __name__ == "__main__":
     test_simple_solver()
