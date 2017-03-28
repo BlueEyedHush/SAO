@@ -100,17 +100,21 @@ def draw_previous_step(args):
 def visualize_simulation(graph, transitions, solution):
     nx_graph = nx.Graph()
 
+    nodes = graph.get_nodes()
     edges = graph.get_edges()
+
+    nx_graph.add_nodes_from(nodes)
     nx_graph.add_edges_from(edges)
+
     positions = nx.spring_layout(nx_graph)
 
     labels = dict()
-    for node_id in graph.nodes:
+    for node_id in nodes:
         labels[node_id] = node_id
 
     shown_transitions = dict()
 
-    untouched_nodes = list(graph.nodes)
+    untouched_nodes = list(nodes)
     burning_nodes = list()
     defended_nodes = list()
 
@@ -128,4 +132,4 @@ def visualize_simulation(graph, transitions, solution):
     }
 
     plt.gcf().canvas.mpl_connect('key_press_event', lambda event: on_key(event, args))
-    draw_graph(nx_graph, graph.nodes, None, None, edges, positions, labels, solution)
+    draw_graph(nx_graph, nodes, None, None, edges, positions, labels, solution)

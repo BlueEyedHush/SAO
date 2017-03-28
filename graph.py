@@ -25,6 +25,9 @@ class Graph(object):
                 bnodes.add(self.nodes[node_id])
         return bnodes
 
+    def get_nodes(self):
+        return self.nodes
+
     def get_starting_nodes(self):
         return self.starting_nodes
 
