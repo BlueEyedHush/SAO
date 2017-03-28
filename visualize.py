@@ -17,29 +17,35 @@ def on_key(event, args):
 
 def draw_graph(graph, untouched_nodes, burning_nodes, defended_nodes, edges, positions, labels, solution):
     node_size = 300
+    labels_font_size = 12
+
+    untouched_nodes_color = 'gray'
+    defended_nodes_color = 'blue'
+    burning_nodes_color = 'red'
 
     plt.clf()
     plt.axis('off')
     plt.title('Solution: ' + str(solution))
-    nx.draw_networkx_nodes(graph, pos=positions,
+
+    nx.draw_networkx_nodes(graph,
+                           pos=positions,
                            nodelist=burning_nodes,
                            node_size=node_size,
-                           node_color='y')
-
+                           node_color=burning_nodes_color)
     nx.draw_networkx_nodes(graph,
                            pos=positions,
                            nodelist=defended_nodes,
                            node_size=node_size,
-                           node_color='b')
-
+                           node_color=defended_nodes_color)
     nx.draw_networkx_nodes(graph,
                            pos=positions,
                            nodelist=untouched_nodes,
                            node_size=node_size,
-                           node_color='r')
+                           node_color=untouched_nodes_color)
 
     nx.draw_networkx_edges(graph, pos=positions, edgelist=edges)
-    nx.draw_networkx_labels(graph, pos=positions, labels=labels, font_size=12)
+    nx.draw_networkx_labels(graph, pos=positions, labels=labels, font_size=labels_font_size)
+
     plt.show()
 
 
