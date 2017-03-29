@@ -63,13 +63,17 @@ class Graph(object):
         for node in self.nodes.values():
             print "Node {}: {}".format(node.id, node.state)
 
+    def reset_metadata(self):
+        for v in self.nodes.values():
+            v.reset_metadata()
+
 
 class Node(object):
     def __init__(self, node_id, value=None):
         self.id = node_id
         self.neighbors = set()
-        self.state = NodeState.UNTOUCHED
         self.value = value
+        self.reset_metadata()
         super(Node, self).__init__()
 
     def add_neighbor(self, node):
@@ -79,6 +83,9 @@ class Node(object):
     def print_node(self):
         """ Print the graph structure accessible from this node """
         print "Node {}: {}".format(self.id, self.neighbors)
+
+    def reset_metadata(self):
+        self.state = NodeState.UNTOUCHED
 
     def __eq__(self, other):
         return self.id == other.id

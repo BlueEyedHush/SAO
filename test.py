@@ -17,5 +17,5 @@ p_graph = g2
 p_solution = solution2
 p_init_nodes = init_nodes2
 
-transitions = simulation(p_graph, p_solution, init_nodes=p_init_nodes, ff_per_step=1)
+transitions = simulation(p_graph, p_solution, init_nodes=p_init_nodes, ff_per_step=1)[0]
 visualize_simulation(p_graph, transitions, p_solution)
