@@ -4,6 +4,16 @@ from simulation import simulation
 from visualize import visualize_simulation
 from sys import stdin, argv
 
+iter_no = 3
+ffs_per_step = 1
+
+def _log(msg, debug_level):
+    if(debug_level == 'logging' or debug_level == 'stepping'):
+            print "[SOLVER]: " + msg
+
+def _log_solution(sol, score, debug_level):
+    _log("solution: {}, score: {} /smaller-better/".format(sol, score), debug_level)
+
 def simple(G, init_nodes, debug_level="disabled"):
     '''
     :param G:
@@ -13,17 +23,12 @@ def simple(G, init_nodes, debug_level="disabled"):
     '''
 
     def log(msg):
-        if(debug_level == 'logging' or debug_level == 'stepping'):
-            print msg
-
-    iter_no = 5
-    ffs_per_step = 1
+        _log(msg, debug_level)
 
     def log_solution(sol, score):
-        log("solution: {}, score: {} /smaller-better/".format(sol, score))
+        _log_solution(sol, score, debug_level)
 
     def calc_next_solution(current):
-        G.reset_metadata()
         new_solution = list(current)
         random.shuffle(new_solution)
         transitions, new_score = simulation(G, new_solution, init_nodes, ffs_per_step)[0:2]
@@ -50,14 +55,65 @@ def simple(G, init_nodes, debug_level="disabled"):
 
     return current_score, current_score
 
+population_size = 4
+select_perc = 0.5
+
+# mutation only algorithm
+def simple_genetic(G, init_nodes, debug_level="disabled"):
+
+    def log(msg):
+        _log(msg, debug_level)
+
+    def log_solution(sol, score):
+        _log_solution(sol, score, debug_level)
+
+    # list of 2-tuples (solution, score)
+    curr_solutions = []
+
+    # build initial solutions
+    def next_sol(base_sol):
+        solution = list(base_sol)
+        random.shuffle(solution)
+        transitions, score = simulation(G, solution, init_nodes, ffs_per_step)[0:2]
+        log_solution(solution, score)
+        return solution, score
+
+    for i in range(0, population_size):
+        solution, score = next_sol(G.get_nodes())
+        curr_solutions.append((solution, score))
+
+    # sort list by scores desc
+    def sort_by_score(solutions):
+        sorted(solutions, key= lambda (sol, score): score)
+    sort_by_score(curr_solutions)
+
+    for i in range(0, iter_no):
+        # take fittest and mutate them /by permuting/
+        fittest_no = max(int(population_size*select_perc), 1)
+        fittest = curr_solutions[0:fittest_no]
+        log("taking {} fittest with scores {}".format(fittest_no, map(lambda (sol, score): score, fittest)))
+        for sol, score in curr_solutions[0:fittest_no]:
+            new_sol, new_score = next_sol(sol)
+            curr_solutions.append((new_sol, new_score))
+            log("got new solution built from {} (was score {})".format(sol, score))
+
+        # resort
+        sort_by_score(curr_solutions)
+
+        # keep only population_size of the strongest
+        curr_solutions = curr_solutions[0:population_size]
+
+    return curr_solutions[0]
+
 solvers = {
-    u"simple": simple
+    "simple": simple,
+    "simple_genetic": simple_genetic
 }
 
 def test_solver(name):
     from graph import Graph
     g2 = Graph()
-    g2.from_file('graphs/random.txt')
+    g2.from_file(u'graphs/random.txt')
     init_nodes2 = [3]
 
     solver_func = solvers[name]
