@@ -60,6 +60,7 @@ def evaluate_result(graph):
 def simulation(graph, solution, init_nodes, ff_per_step):
     # save nodes transitions to visualize the process
     transitions = dict()
+    graph.reset_metadata()
 
     transitions = set_initial_nodes_on_fire(graph, init_nodes, transitions)
 
