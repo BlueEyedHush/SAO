@@ -2,7 +2,7 @@
 import random
 from simulation import simulation
 from visualize import visualize_simulation
-from sys import stdin
+from sys import stdin, argv
 
 def simple(G, init_nodes, debug_level="disabled"):
     '''
@@ -50,13 +50,22 @@ def simple(G, init_nodes, debug_level="disabled"):
 
     return current_score, current_score
 
-def test_simple_solver():
+solvers = {
+    u"simple": simple
+}
+
+def test_solver(name):
     from graph import Graph
     g2 = Graph()
     g2.from_file('graphs/random.txt')
     init_nodes2 = [3]
 
-    simple(g2, init_nodes2, "stepping")
+    solver_func = solvers[name]
+    solver_func(g2, init_nodes2, "stepping")
 
 if __name__ == "__main__":
-    test_simple_solver()
+    if len(argv) < 2:
+        print "first argument must be name of the algorithm"
+        exit(1)
+
+    test_solver(argv[1])
