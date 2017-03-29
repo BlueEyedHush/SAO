@@ -58,11 +58,10 @@ def simple(G, init_nodes, debug_level="disabled"):
 
     return current_score, current_score
 
-population_size = 4
-select_perc = 0.5
-
 # mutation only algorithm
 def simple_genetic(G, init_nodes, debug_level="disabled"):
+    population_size = 4
+    select_perc = 0.5
 
     def log(msg):
         _log(msg, debug_level)
@@ -112,9 +111,88 @@ def simple_genetic(G, init_nodes, debug_level="disabled"):
 
     return curr_solutions[0]
 
+def simple_genetic_crossover(G, init_nodes, debug_level="disabled"):
+    population_size = 4
+    crossover_count = max(int(population_size*0.5), 1) # split point - how many firefighters are taken from 1st parent, how many from the 2nd
+    mutation_count = 1
+    crossover_point = 0.5
+
+    if max(crossover_count + 1, mutation_count) > population_size:
+        raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
+
+    def log(msg):
+        _log(msg, debug_level)
+
+    def log_solution(sol, score):
+        _log_solution(sol, score, debug_level)
+
+    # list of 2-tuples (solution, score)
+    curr_solutions = []
+
+    # build initial solutions
+    def next_sol(base_sol):
+        solution = list(base_sol)
+        random.shuffle(solution)
+        transitions, score = simulation(G, solution, init_nodes, ffs_per_step)[0:2]
+        log_solution(solution, score)
+        return solution, score
+
+    for i in range(0, population_size):
+        solution, score = next_sol(G.get_nodes())
+        curr_solutions.append((solution, score))
+
+    # sort list by scores desc
+    def sort_by_score(solutions):
+        sorted(solutions, key= lambda (sol, score): score)
+    sort_by_score(curr_solutions)
+
+    for i in range(0, iter_no):
+        log("**** ITERATION {} ****".format(i))
+
+        # crossover
+        for i in range(0, crossover_count):
+            parents = curr_solutions[i:i+2]
+            parent1 = parents[0][0]
+            parent2 = parents[1][0]
+
+            last_from_1st = max(int(len(parent1)*crossover_point), 1)
+            first_part = parent1[0:last_from_1st+1]
+            second_part = filter(lambda x: x not in first_part, parent2)
+
+            child = first_part + second_part
+
+            par_len = len(parent1)
+            child_len = len(child)
+            if(child_len != par_len):
+                raise Exception("child has wrong size (child: {} parent: {})!".format(child, parent1))
+
+            if(len(child) != len(set(child))):
+                raise Exception("duplicate entries in child genome!")
+
+
+            transitions, score = simulation(G, child, init_nodes, ffs_per_step)[0:2]
+            log("crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1], parents[1][0], parents[1][1], child, score))
+            curr_solutions.append((child, score))
+
+        # mutate some individuals
+        fittest = curr_solutions[0:mutation_count]
+        for sol, score in fittest:
+            new_sol, new_score = next_sol(sol)
+            log("mutated solution {} /score {}/ built from {} /score {}/".format(new_sol, new_score, sol, score))
+            curr_solutions.append((new_sol, new_score))
+
+        # resort
+        sort_by_score(curr_solutions)
+
+        # keep only population_size of the strongest
+        curr_solutions = curr_solutions[0:population_size]
+
+    return curr_solutions[0]
+
 solvers = {
     "simple": simple,
-    "simple_genetic": simple_genetic
+    "simple_genetic": simple_genetic,
+    "simple_genetic_crossover": simple_genetic_crossover
 }
 
 def test_solver(name):
