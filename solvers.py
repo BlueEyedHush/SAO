@@ -126,6 +126,12 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled"):
     def log_solution(sol, score):
         _log_solution(sol, score, debug_level)
 
+    def simulate(solution):
+        transitions, score = simulation(G, solution, init_nodes, ffs_per_step)[0:2]
+        if debug_level == 'stepping':
+            _offer_visualization(G, transitions, solution)
+        return score
+
     # list of 2-tuples (solution, score)
     curr_solutions = []
 
@@ -133,7 +139,7 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled"):
     def next_sol(base_sol):
         solution = list(base_sol)
         random.shuffle(solution)
-        transitions, score = simulation(G, solution, init_nodes, ffs_per_step)[0:2]
+        score = simulate(solution)
         log_solution(solution, score)
         return solution, score
 
@@ -170,7 +176,7 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled"):
                 raise Exception("duplicate entries in child genome!")
 
 
-            transitions, score = simulation(G, child, init_nodes, ffs_per_step)[0:2]
+            score = simulate(child)
             log("crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1], parents[1][0], parents[1][1], child, score))
             curr_solutions.append((child, score))
 
