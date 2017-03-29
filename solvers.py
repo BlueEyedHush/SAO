@@ -14,6 +14,11 @@ def _log(msg, debug_level):
 def _log_solution(sol, score, debug_level):
     _log("solution: {}, score: {} /smaller-better/".format(sol, score), debug_level)
 
+def _offer_visualization(G, transitions, solution):
+    print "Do you want to see visualization of newly computed solution? [y/N]: "
+    if stdin.readline().strip().startswith("y"):
+        visualize_simulation(G, transitions, solution)
+
 def simple(G, init_nodes, debug_level="disabled"):
     '''
     :param G:
@@ -35,9 +40,7 @@ def simple(G, init_nodes, debug_level="disabled"):
         log_solution(new_solution, new_score)
 
         if debug_level == 'stepping':
-            print "Do you want to see visualization of newly computed solution? [y/N]: "
-            if stdin.readline().strip().startswith("y"):
-                visualize_simulation(G, transitions, new_solution)
+            _offer_visualization(G, transitions, new_solution)
 
         return new_solution, new_score
 
@@ -76,6 +79,10 @@ def simple_genetic(G, init_nodes, debug_level="disabled"):
         random.shuffle(solution)
         transitions, score = simulation(G, solution, init_nodes, ffs_per_step)[0:2]
         log_solution(solution, score)
+
+        if debug_level == 'stepping':
+            _offer_visualization(G, transitions, solution)
+
         return solution, score
 
     for i in range(0, population_size):
