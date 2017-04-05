@@ -7,7 +7,8 @@ from simulation import simulation
 from visualize import visualize_simulation
 from sys import stdin, argv
 
-ffs_per_step = 1
+ALGO_ITER_NO = 3
+FFS_PER_STEP = 1
 
 def log_solution(sol, score):
     logging.info("solution: {}, score: {} /smaller-better/".format(sol, score))
@@ -17,7 +18,7 @@ def _offer_visualization(G, transitions, solution):
     if stdin.readline().strip().startswith("y"):
         visualize_simulation(G, transitions, solution)
 
-def simple_genetic_crossover(G, init_nodes, vis=False, iter_no = 3):
+def simple_genetic_crossover(G, init_nodes, vis=False, iter_no = ALGO_ITER_NO, ffs_per_step = FFS_PER_STEP):
     population_size = 4
     crossover_count = max(int(population_size*0.5), 1) # split point - how many firefighters are taken from 1st parent, how many from the 2nd
     mutation_count = 1
@@ -104,7 +105,8 @@ if __name__ == "__main__":
 
     configure_graph_generation_cli(parser)
     parser.add_argument('--algorithm', help='algorithm name', default='simple_genetic_crossover')
-    parser.add_argument('--iters', help='number of algorithm iterations', type=int, default=3)
+    parser.add_argument('--iters', help='number of algorithm iterations', type=int, default=ALGO_ITER_NO)
+    parser.add_argument('--ffs', help='number of firefighters per step', type=int, default=FFS_PER_STEP)
 
     args = parser.parse_args()
 
@@ -112,4 +114,4 @@ if __name__ == "__main__":
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
-    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), "stepping", args.iters)
+    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), True, args.iters, args.ffs)
