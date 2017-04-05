@@ -1,4 +1,5 @@
 from graph import NodeState, Graph
+import logging
 
 
 def set_initial_nodes_on_fire(graph, init_nodes, transitions):
@@ -70,9 +71,9 @@ def simulation(graph, solution, init_nodes, ff_per_step):
         solution_index, transitions = assign_firefighters(graph, solution, solution_index, ff_per_step, transitions)
         transitions = spread_fire(graph, transitions)
         iterations += 1
-    print "It took {} iterations for the fire to stop spreading".format(iterations)
+    logging.info("It took {} iterations for the fire to stop spreading".format(iterations))
 
     result = evaluate_result(graph)
-    print "Result: {} (saved nodes)".format(result)
+    logging.info("Result: {} (saved nodes)".format(result))
 
     return transitions, iterations, result

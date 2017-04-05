@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
+import logging
 
 from graph import NodeState
 
@@ -50,7 +51,7 @@ def draw_graph(graph, untouched_nodes, burning_nodes, defended_nodes, edges, pos
 
 
 def draw_next_step(args):
-    print "Drawing next step..."
+    logging.info("Drawing next step...")
 
     future_transitions = args['future_transitions']
     shown_transitions = args['shown_transitions']
@@ -74,7 +75,7 @@ def draw_next_step(args):
 
 
 def draw_previous_step(args):
-    print "Falling back to previous step..."
+    logging.info("Falling back to previous step...")
 
     future_transitions = args['future_transitions']
     shown_transitions = args['shown_transitions']
