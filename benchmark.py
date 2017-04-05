@@ -1,39 +1,8 @@
 #!/usr/bin/env python
 
 import os, sys, logging, itertools
-from generate import generate_file_data
-from graph import Graph
+from generate import load_graph
 from solvers import simple_genetic_crossover
-
-SCRIPT_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
-GRAPHS_DIR = "graphs/"
-STARTING_VERTICES = 1
-
-def _get_script_dir():
-    relative = ""
-    if __file__:
-        # when loaded as module
-        relative = __file__
-    else:
-        # when run as script
-        relative = sys.argv[0]
-    return os.path.dirname(os.path.realpath(relative))
-
-def _generate_graph_file_name(vertex_no, density):
-    return u"{}_{}.graph".format(vertex_no, density)
-
-def _load_graph(vertex_no, density):
-    fname = _generate_graph_file_name(vertex_no, density)
-    graph_file_path = os.path.join(_get_script_dir(), GRAPHS_DIR, fname)
-
-    if not os.path.isfile(graph_file_path):
-        generate_file_data(graph_file_path, vertex_no, density, STARTING_VERTICES)
-
-    g = Graph()
-    g.from_file(graph_file_path)
-
-    return g
-
 
 def benchmark(algorithm, test_configurations):
     '''
@@ -44,7 +13,7 @@ def benchmark(algorithm, test_configurations):
     '''
 
     for vertex_no, density, iterations in test_configurations:
-        g = _load_graph(vertex_no, density)
+        g = load_graph(vertex_no, density)
         sn = map(lambda v: int(v.id), g.get_starting_nodes())
 
         print u"VERTEX_NO = {}, DENSITY = {}, ITERATIONS = {}, STARTING_NODES = {}".format(vertex_no, density, iterations, sn)

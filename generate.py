@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 import argparse
-import os
+import os, sys
 import random
 
+from graph import Graph
 from itertools import combinations
 
+SCRIPT_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
+GRAPHS_DIR = "graphs/"
+STARTING_VERTICES = 1
 
 def generate_edges(vertices_num, density):
     # TODO: describe what it does, in particular the density
@@ -29,6 +33,31 @@ def generate_file_data(out_file, vertices_num, density, starting_vertices_num):
         f.write('\n')
         for e in edges:
             f.write("{} {}\n".format(*e))
+
+def _get_script_dir():
+    relative = ""
+    if __file__:
+        # when loaded as module
+        relative = __file__
+    else:
+        # when run as script
+        relative = sys.argv[0]
+    return os.path.dirname(os.path.realpath(relative))
+
+def _generate_graph_file_name(vertex_no, density):
+    return u"{}_{}.graph".format(vertex_no, density)
+
+def load_graph(vertex_no, density):
+    fname = _generate_graph_file_name(vertex_no, density)
+    graph_file_path = os.path.join(_get_script_dir(), GRAPHS_DIR, fname)
+
+    if not os.path.isfile(graph_file_path):
+        generate_file_data(graph_file_path, vertex_no, density, STARTING_VERTICES)
+
+    g = Graph()
+    g.from_file(graph_file_path)
+
+    return g
 
 def configure_graph_generation_cli(parser):
     parser.add_argument('--out', help='output file', default=os.path.join('graphs', 'random.txt'))
