@@ -1,6 +1,8 @@
 
 import random
 import logging
+import argparse
+from generate import configure_graph_generation_cli, load_graph
 from simulation import simulation
 from visualize import visualize_simulation
 from sys import stdin, argv
@@ -108,18 +110,16 @@ solvers = {
     "simple_genetic_crossover": simple_genetic_crossover
 }
 
-def test_solver(name):
-    from graph import Graph
-    g2 = Graph()
-    g2.from_file(u'graphs/random.txt')
-    init_nodes2 = [3]
-
-    solver_func = solvers[name]
-    solver_func(g2, init_nodes2, "stepping")
-
 if __name__ == "__main__":
-    if len(argv) < 2:
-        print "first argument must be name of the algorithm"
-        exit(1)
+    parser = argparse.ArgumentParser()
 
-    test_solver(argv[1])
+    configure_graph_generation_cli(parser)
+    parser.add_argument('--algorithm', help='algorithm name', default='simple_genetic_crossover')
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level = logging.INFO)
+
+    g = load_graph(args.vertices, args.density)
+    solver_func = solvers[args.algorithm]
+    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), "stepping")
