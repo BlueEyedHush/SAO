@@ -49,8 +49,8 @@ def benchmark(algorithm, test_configurations):
 
         print u"VERTEX_NO = {}, DENSITY = {}, ITERATIONS = {}, STARTING_NODES = {}".format(vertex_no, density, iterations, sn)
         for i in xrange(iterations):
-            result = algorithm(g, sn)
-            print result
+            solution, score = algorithm(g, sn)
+            print score
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.WARN)
