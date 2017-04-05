@@ -44,15 +44,15 @@ def _get_script_dir():
         relative = sys.argv[0]
     return os.path.dirname(os.path.realpath(relative))
 
-def _generate_graph_file_name(vertex_no, density):
-    return u"{}_{}.graph".format(vertex_no, density)
+def _generate_graph_file_name(vertex_no, density, starting_vertices_no):
+    return u"{}_{}_{}.rgraph".format(vertex_no, density, starting_vertices_no)
 
-def load_graph(vertex_no, density):
-    fname = _generate_graph_file_name(vertex_no, density)
+def load_graph(vertex_no, density, starting_vertices_no = STARTING_VERTICES):
+    fname = _generate_graph_file_name(vertex_no, density, starting_vertices_no)
     graph_file_path = os.path.join(_get_script_dir(), GRAPHS_DIR, fname)
 
     if not os.path.isfile(graph_file_path):
-        generate_file_data(graph_file_path, vertex_no, density, STARTING_VERTICES)
+        generate_file_data(graph_file_path, vertex_no, density, starting_vertices_no)
 
     g = Graph()
     g.from_file(graph_file_path)
@@ -60,13 +60,13 @@ def load_graph(vertex_no, density):
     return g
 
 def configure_graph_generation_cli(parser):
-    parser.add_argument('--out', help='output file', default=os.path.join('graphs', 'random.txt'))
     parser.add_argument('--vertices', help='number of vertices in graph', type=int, default=10)
     parser.add_argument('--density', help='edges density; float in range [0..1]', type=float, default=0.2)
     parser.add_argument('--starting_vertices', help='number of starting vertices', type=int, default=1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--out', help='output file', default=os.path.join('graphs', 'random.txt'))
     configure_graph_generation_cli(parser)
     args = parser.parse_args()
 

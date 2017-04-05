@@ -120,6 +120,6 @@ if __name__ == "__main__":
 
     logging.basicConfig(level = logging.INFO)
 
-    g = load_graph(args.vertices, args.density)
+    g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
     solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), "stepping", args.iters)
