@@ -7,7 +7,6 @@ from simulation import simulation
 from visualize import visualize_simulation
 from sys import stdin, argv
 
-iter_no = 3
 ffs_per_step = 1
 
 def _log(msg, debug_level):
@@ -22,7 +21,7 @@ def _offer_visualization(G, transitions, solution):
     if stdin.readline().strip().startswith("y"):
         visualize_simulation(G, transitions, solution)
 
-def simple_genetic_crossover(G, init_nodes, debug_level="disabled"):
+def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3):
     population_size = 4
     crossover_count = max(int(population_size*0.5), 1) # split point - how many firefighters are taken from 1st parent, how many from the 2nd
     mutation_count = 1
@@ -115,6 +114,7 @@ if __name__ == "__main__":
 
     configure_graph_generation_cli(parser)
     parser.add_argument('--algorithm', help='algorithm name', default='simple_genetic_crossover')
+    parser.add_argument('--iters', help='number of algorithm iterations', type=int, default=3)
 
     args = parser.parse_args()
 
@@ -122,4 +122,4 @@ if __name__ == "__main__":
 
     g = load_graph(args.vertices, args.density)
     solver_func = solvers[args.algorithm]
-    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), "stepping")
+    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), "stepping", args.iters)
