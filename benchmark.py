@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, logging
+import os, sys, logging, itertools
 from generate import generate_file_data
 from graph import Graph
 from solvers import simple_genetic_crossover
@@ -54,4 +54,11 @@ def benchmark(algorithm, test_configurations):
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.WARN)
-    benchmark(simple_genetic_crossover, [(10, 0.5, 5)])
+
+    V_NO = [10, 25, 50]
+    DENSITIES = [0.5, 0.75, 0.9]
+    ITERS = [5]
+
+    confs = itertools.product(V_NO, DENSITIES, ITERS)
+
+    benchmark(simple_genetic_crossover, confs)
