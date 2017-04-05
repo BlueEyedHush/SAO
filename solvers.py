@@ -17,7 +17,7 @@ def _offer_visualization(G, transitions, solution):
     if stdin.readline().strip().startswith("y"):
         visualize_simulation(G, transitions, solution)
 
-def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3):
+def simple_genetic_crossover(G, init_nodes, vis=False, iter_no = 3):
     population_size = 4
     crossover_count = max(int(population_size*0.5), 1) # split point - how many firefighters are taken from 1st parent, how many from the 2nd
     mutation_count = 1
@@ -28,7 +28,7 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3)
 
     def simulate(solution):
         transitions, iterations, saved_nodes = simulation(G, solution, init_nodes, ffs_per_step)
-        if debug_level == 'stepping':
+        if vis:
             _offer_visualization(G, transitions, solution)
         return float(saved_nodes)/len(G.get_nodes())
 
