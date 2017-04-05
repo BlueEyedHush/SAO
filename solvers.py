@@ -41,7 +41,7 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled"):
         transitions, iterations, saved_nodes = simulation(G, solution, init_nodes, ffs_per_step)
         if debug_level == 'stepping':
             _offer_visualization(G, transitions, solution)
-        return saved_nodes
+        return float(saved_nodes)/len(G.get_nodes())
 
     # list of 2-tuples (solution, score)
     curr_solutions = []
