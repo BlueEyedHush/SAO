@@ -9,19 +9,15 @@ from sys import stdin, argv
 
 ffs_per_step = 1
 
-def _log(msg, debug_level):
-    if(debug_level == 'logging' or debug_level == 'stepping'):
-            logging.info("[SOLVER]: " + msg)
-
-def _log_solution(sol, score, debug_level):
-    _log("solution: {}, score: {} /smaller-better/".format(sol, score), debug_level)
+def log_solution(sol, score):
+    logging.info("solution: {}, score: {} /smaller-better/".format(sol, score))
 
 def _offer_visualization(G, transitions, solution):
     print "Do you want to see visualization of newly computed solution? [y/N]: "
     if stdin.readline().strip().startswith("y"):
         visualize_simulation(G, transitions, solution)
 
-def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3):
+def simple_genetic_crossover(G, init_nodes, vis=False, iter_no = 3):
     population_size = 4
     crossover_count = max(int(population_size*0.5), 1) # split point - how many firefighters are taken from 1st parent, how many from the 2nd
     mutation_count = 1
@@ -30,15 +26,9 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3)
     if max(crossover_count + 1, mutation_count) > population_size:
         raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
 
-    def log(msg):
-        _log(msg, debug_level)
-
-    def log_solution(sol, score):
-        _log_solution(sol, score, debug_level)
-
     def simulate(solution):
         transitions, iterations, saved_nodes = simulation(G, solution, init_nodes, ffs_per_step)
-        if debug_level == 'stepping':
+        if vis:
             _offer_visualization(G, transitions, solution)
         return float(saved_nodes)/len(G.get_nodes())
 
@@ -63,7 +53,7 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3)
     sort_by_score(curr_solutions)
 
     for i in range(0, iter_no):
-        log("**** ITERATION {} ****".format(i))
+        logging.info("**** ITERATION {} ****".format(i))
 
         # crossover
         for i in range(0, crossover_count):
@@ -87,14 +77,14 @@ def simple_genetic_crossover(G, init_nodes, debug_level="disabled", iter_no = 3)
 
 
             score = simulate(child)
-            log("crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1], parents[1][0], parents[1][1], child, score))
+            logging.info("crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1], parents[1][0], parents[1][1], child, score))
             curr_solutions.append((child, score))
 
         # mutate some individuals
         fittest = curr_solutions[0:mutation_count]
         for sol, score in fittest:
             new_sol, new_score = next_sol(sol)
-            log("mutated solution {} /score {}/ built from {} /score {}/".format(new_sol, new_score, sol, score))
+            logging.info("mutated solution {} /score {}/ built from {} /score {}/".format(new_sol, new_score, sol, score))
             curr_solutions.append((new_sol, new_score))
 
         # resort
