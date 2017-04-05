@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import logging
-
 from graph import NodeState
 
 
