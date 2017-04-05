@@ -1,5 +1,6 @@
 
 import random
+import logging
 from simulation import simulation
 from visualize import visualize_simulation
 from sys import stdin, argv
@@ -9,7 +10,7 @@ ffs_per_step = 1
 
 def _log(msg, debug_level):
     if(debug_level == 'logging' or debug_level == 'stepping'):
-            print "[SOLVER]: " + msg
+            logging.info("[SOLVER]: " + msg)
 
 def _log_solution(sol, score, debug_level):
     _log("solution: {}, score: {} /smaller-better/".format(sol, score), debug_level)

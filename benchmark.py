@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys
+import os, sys, logging
 from generate import generate_file_data
 from graph import Graph
 from solvers import simple_genetic_crossover
@@ -53,4 +53,5 @@ def benchmark(algorithm, test_configurations):
             print result
 
 if __name__ == "__main__":
+    logging.basicConfig(level = logging.WARN)
     benchmark(simple_genetic_crossover, [(10, 0.5, 5)])
