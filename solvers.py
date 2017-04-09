@@ -1,13 +1,18 @@
-import random
-import logging
 import argparse
-from generate import configure_graph_generation_cli, load_graph
+import logging
+import random
+from sys import stdin
+
+from generate import load_graph
 from simulation import simulation
 from visualize import visualize_simulation
-from sys import stdin, argv
 
-ALGO_ITER_NO = 3
-FFS_PER_STEP = 1
+
+def defaults():
+    return {
+        'algo_iter_no': 3,
+        'ffs_per_step': 1
+    }
 
 
 def log_solution(sol, score):
@@ -20,7 +25,8 @@ def _offer_visualization(G, transitions, solution):
         visualize_simulation(G, transitions, solution)
 
 
-def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=ALGO_ITER_NO, ffs_per_step=FFS_PER_STEP):
+def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_iter_no'],
+                             ffs_per_step=defaults()['ffs_per_step']):
     population_size = 4
     crossover_count = max(int(population_size * 0.5),
                           1)  # split point - how many firefighters are taken from 1st parent, how many from the 2nd
@@ -74,10 +80,10 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=ALGO_ITER_NO, ffs
 
             par_len = len(parent1)
             child_len = len(child)
-            if (child_len != par_len):
+            if child_len != par_len:
                 raise Exception("child has wrong size (child: {} parent: {})!".format(child, parent1))
 
-            if (len(child) != len(set(child))):
+            if len(child) != len(set(child)):
                 raise Exception("duplicate entries in child genome!")
 
             score = simulate(child)
@@ -111,10 +117,30 @@ solvers = {
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    configure_graph_generation_cli(parser)
-    parser.add_argument('--algorithm', help='algorithm name', default='simple_genetic_crossover')
-    parser.add_argument('--iters', help='number of algorithm iterations', type=int, default=ALGO_ITER_NO)
-    parser.add_argument('--ffs', help='number of firefighters per step', type=int, default=FFS_PER_STEP)
+    parser.add_argument('-a', '--algorithm',
+                        help='algorithm name',
+                        choices=['simple_genetic_crossover'],
+                        default='simple_genetic_crossover')
+    parser.add_argument('-d', '--density',
+                        help='edges density; float in range [0..1]',
+                        type=float,
+                        default=0.2)
+    parser.add_argument('-f', '--ffs',
+                        help='number of firefighters per step',
+                        type=int,
+                        default=defaults()['ffs_per_step'])
+    parser.add_argument('-i', '--iters',
+                        help='number of algorithm iterations',
+                        type=int,
+                        default=defaults()['algo_iter_step'])
+    parser.add_argument('-s', '--starting_vertices',
+                        help='number of starting vertices',
+                        type=int,
+                        default=1)
+    parser.add_argument('-v', '--vertices',
+                        help='number of vertices in graph',
+                        type=int,
+                        default=10)
 
     args = parser.parse_args()
 
@@ -122,4 +148,5 @@ if __name__ == "__main__":
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
-    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), True, args.iters, args.ffs)
+    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), vis=True, iter_no=args.iters,
+                ffs_per_step=args.ffs)
