@@ -2,13 +2,11 @@ from graph import Graph
 from simulation import simulation
 from visualize import visualize_simulation
 
-g = Graph()
-g.from_file('graphs/simple.txt')
+g = Graph.from_file('graphs/simple.txt')
 solution = [1, 0, 2, 4, 3]
 init_nodes = [4]
 
-g2 = Graph()
-g2.from_file('graphs/random.txt')
+g2 = Graph.from_file('graphs/random.txt')
 solution2 = [9, 0, 2, 4, 3, 5, 6, 7, 8, 1]
 init_nodes2 = [3]
 

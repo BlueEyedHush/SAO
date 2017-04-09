@@ -51,8 +51,7 @@ def load_graph(vertex_no, density, starting_vertices_no=1):
     if not os.path.isfile(graph_file_path):
         generate_file_data(graph_file_path, vertex_no, density, starting_vertices_no)
 
-    g = Graph()
-    g.from_file(graph_file_path)
+    g = Graph.from_file(graph_file_path)
 
     return g
 
