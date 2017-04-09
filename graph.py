@@ -53,7 +53,7 @@ class Graph(object):
         new_instance = cls()
         with open(input_file, 'r') as f:
             new_instance.nodes_number, _ = map(int, f.readline().split())
-            new_instance.starting_nodes = [Node(s) for s in f.readline().split()]
+            new_instance.starting_nodes = [Node(int(s)) for s in f.readline().split()]
             for node_id in xrange(new_instance.nodes_number):
                 new_instance.nodes[node_id] = Node(node_id)
             for line in f:
