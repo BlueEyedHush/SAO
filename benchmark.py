@@ -6,7 +6,7 @@ from generate import load_graph
 from solvers import simple_genetic_crossover
 
 
-def benchmark(algorithm, test_configurations, iterations):
+def benchmark(algorithm, test_configurations, iterations=1, header=True):
     """
 
     :param algorithm: function taking 2 arguments: 1. graph 2. nodes where fire starts and returning best solution
@@ -15,16 +15,20 @@ def benchmark(algorithm, test_configurations, iterations):
         average value & relative stddev value'll be reported
     :return:
     """
+    f = "{:>8} {:>8} {:>8} {:>8} {:>8} {:>8}"
+    if header:
+        print f.format("#VERTEX", "DENSITY", "ORIGINS", "FFSSTEP", "ITERS", "SCORE")
 
     for vertex_no, density, ffs_per_step, algo_iters in test_configurations:
+        def _print_result(score):
+            print f.format(vertex_no, density, len(sn), ffs_per_step, algo_iters, score)
+
         g = load_graph(vertex_no, density)
         sn = map(lambda v: v.id, g.get_starting_nodes())
 
-        print u"VERTEX_NO = {}, DENSITY = {}, STARTING_NODES = {}, FFS_PER_STEP = {}, ALGO_ITERS = {}" \
-            .format(vertex_no, density, sn, ffs_per_step, algo_iters)
         for i in xrange(iterations):
             solution, score = algorithm(g, sn, iter_no=algo_iters, ffs_per_step=ffs_per_step)
-            print score
+            _print_result(score)
 
 
 if __name__ == "__main__":
