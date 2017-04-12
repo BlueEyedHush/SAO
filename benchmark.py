@@ -3,7 +3,7 @@
 import itertools
 import logging
 from generate import load_graph
-from solvers import simple_genetic_crossover
+from solvers import simple_genetic_crossover, AlgoIn
 
 
 def benchmark(algorithm, test_configurations, iterations=1, header=True):
@@ -28,8 +28,8 @@ def benchmark(algorithm, test_configurations, iterations=1, header=True):
         sn = map(lambda v: v.id, g.get_starting_nodes())
 
         for i in xrange(iterations):
-            solution, score = algorithm(g, sn, iter_no=algo_iters, ffs_per_step=ffs_per_step)
-            _print_result(score)
+            algo_out = algorithm(AlgoIn(g, sn, iter_no=algo_iters, ffs_per_step=ffs_per_step))
+            _print_result(algo_out.best_solution_score)
 
 
 if __name__ == "__main__":
