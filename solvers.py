@@ -26,7 +26,7 @@ def _offer_visualization(G, transitions, solution):
 
 
 def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_iter_no'],
-                             ffs_per_step=defaults()['ffs_per_step']):
+                             ffs_per_step=defaults()['ffs_per_step'], show_score_every=None):
     population_size = 4
     crossover_count = max(int(population_size * 0.5),
                           1)  # split point - how many firefighters are taken from 1st parent, how many from the 2nd
@@ -67,8 +67,8 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         logging.info("**** ITERATION {} ****".format(i))
 
         # crossover
-        for i in range(0, crossover_count):
-            parents = curr_solutions[i:i + 2]
+        for j in range(0, crossover_count):
+            parents = curr_solutions[j:j + 2]
             parent1 = parents[0][0]
             parent2 = parents[1][0]
 
@@ -107,6 +107,9 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         # keep only population_size of the strongest
         curr_solutions = curr_solutions[0:population_size]
 
+        if show_score_every is not None and i % show_score_every == 0:
+            print "Scores after iteration {}: {}".format(i, map(lambda (_, score): score, curr_solutions))
+
     return curr_solutions[0]
 
 
@@ -132,7 +135,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--iters',
                         help='number of algorithm iterations',
                         type=int,
-                        default=defaults()['algo_iter_step'])
+                        default=defaults()['algo_iter_no'])
     parser.add_argument('-s', '--starting_vertices',
                         help='number of starting vertices',
                         type=int,
@@ -144,9 +147,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARN)
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
     solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), vis=True, iter_no=args.iters,
-                ffs_per_step=args.ffs)
+                ffs_per_step=args.ffs, show_score_every=1)
