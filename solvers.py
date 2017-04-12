@@ -46,7 +46,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
     if max(crossover_count + 1, mutation_count) > population_size:
         raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
 
-    def simulate(solution, comment=""):
+    def process_new_solution(solution, comment=""):
         transitions, solution_score = simulation(G, solution, init_nodes, ffs_per_step)
         score = AlgoScore(perc_saved_nodes=float(solution_score.nodes_saved) / len(G.get_nodes()),
                           perc_saved_occupied_by_ff=float(solution_score.nodes_occupied_by_ff) / len(G.get_nodes()))
@@ -57,16 +57,15 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
     # list of 2-tuples (solution, score)
     curr_solutions = []
 
-    def next_sol(base_sol, comment=""):
+    def new_solution_by_shuffling(base_sol, comment=""):
         solution = list(base_sol)
         random.shuffle(solution)
-        score = simulate(solution, comment)
-        log_solution(solution, score.perc_saved_nodes)
+        score = process_new_solution(solution, comment)
         return solution, score
 
     # build initial solutions
     for i in range(0, population_size):
-        solution, score = next_sol(G.get_nodes(), "initial solution")
+        solution, score = new_solution_by_shuffling(G.get_nodes(), "initial solution")
         curr_solutions.append((solution, score))
 
     # sort list by scores desc
@@ -98,7 +97,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
             if len(child) != len(set(child)):
                 raise Exception("duplicate entries in child genome!")
 
-            score = simulate(child, "crossover result")
+            score = process_new_solution(child, "crossover result")
             logging.info(
                 "crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1],
                                                                                       parents[1][0], parents[1][1],
@@ -108,7 +107,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         # mutate some individuals
         fittest = curr_solutions[0:mutation_count]
         for sol, score in fittest:
-            new_sol, new_score = next_sol(sol, "mutation result")
+            new_sol, new_score = new_solution_by_shuffling(sol, "mutation result")
             logging.info(
                 "mutated solution {} /score {}/ built from {} /score {}/".format(new_sol, new_score, sol, score))
             curr_solutions.append((new_sol, new_score))
