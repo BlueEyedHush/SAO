@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 
-import os, sys, logging, itertools
+import itertools
+import logging
+
 from generate import load_graph
 from solvers import simple_genetic_crossover
 
 
 def benchmark(algorithm, test_configurations):
-    '''
+    """
 
     :param algorithm: function taking 2 arguments: 1. graph 2. nodes where fire starts and returning best solution
     :param test_configuration: list of tuples
     :return:
-    '''
+    """
 
     for vertex_no, density, iters_per_graph, ffs_per_step, algo_iters in test_configurations:
         g = load_graph(vertex_no, density)
-        sn = map(lambda v: int(v.id), g.get_starting_nodes())
+        sn = map(lambda v: v.id, g.get_starting_nodes())
 
         print u"VERTEX_NO = {}, DENSITY = {}, STARTING_NODES = {}, ITERS_PER_GRAPH = {}, FFS_PER_STEP = {}, ALGO_ITERS = {}" \
             .format(vertex_no, density, sn, iters_per_graph, ffs_per_step, algo_iters)

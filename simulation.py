@@ -1,5 +1,6 @@
-from graph import NodeState, Graph
 import logging
+
+from graph import NodeState
 
 
 def set_initial_nodes_on_fire(graph, init_nodes, transitions):
