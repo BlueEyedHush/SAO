@@ -19,8 +19,10 @@ def log_solution(sol, score):
     logging.info("solution: {}, score: {} /smaller-better/".format(sol, score))
 
 
-def _offer_visualization(G, transitions, solution):
-    print "Do you want to see visualization of newly computed solution? [y/N]: "
+def _offer_visualization(G, transitions, solution, score, comment=""):
+    if comment:
+        print "New solution ({}), score: {}".format(comment, score)
+    print "Show visualization? [y/N]: "
     if stdin.readline().strip().startswith("y"):
         visualize_simulation(G, transitions, solution)
 
@@ -36,25 +38,26 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
     if max(crossover_count + 1, mutation_count) > population_size:
         raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
 
-    def simulate(solution):
+    def simulate(solution, comment=""):
         transitions, iterations, saved_nodes = simulation(G, solution, init_nodes, ffs_per_step)
+        score = float(saved_nodes) / len(G.get_nodes())
         if vis:
-            _offer_visualization(G, transitions, solution)
-        return float(saved_nodes) / len(G.get_nodes())
+            _offer_visualization(G, transitions, solution, comment, score)
+        return score
 
     # list of 2-tuples (solution, score)
     curr_solutions = []
 
-    # build initial solutions
-    def next_sol(base_sol):
+    def next_sol(base_sol, comment=""):
         solution = list(base_sol)
         random.shuffle(solution)
-        score = simulate(solution)
+        score = simulate(solution, comment)
         log_solution(solution, score)
         return solution, score
 
+    # build initial solutions
     for i in range(0, population_size):
-        solution, score = next_sol(G.get_nodes())
+        solution, score = next_sol(G.get_nodes(), "initial solution")
         curr_solutions.append((solution, score))
 
     # sort list by scores desc
@@ -86,7 +89,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
             if len(child) != len(set(child)):
                 raise Exception("duplicate entries in child genome!")
 
-            score = simulate(child)
+            score = simulate(child, "crossover result")
             logging.info(
                 "crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1],
                                                                                       parents[1][0], parents[1][1],
@@ -96,7 +99,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         # mutate some individuals
         fittest = curr_solutions[0:mutation_count]
         for sol, score in fittest:
-            new_sol, new_score = next_sol(sol)
+            new_sol, new_score = next_sol(sol, "mutation result")
             logging.info(
                 "mutated solution {} /score {}/ built from {} /score {}/".format(new_sol, new_score, sol, score))
             curr_solutions.append((new_sol, new_score))
@@ -144,6 +147,10 @@ if __name__ == "__main__":
                         help='number of vertices in graph',
                         type=int,
                         default=10)
+    parser.add_argument('-z', '--visualization',
+                        help='enables visualization for solutions',
+                        action='store_true',
+                        default=False)
 
     args = parser.parse_args()
 
@@ -151,5 +158,5 @@ if __name__ == "__main__":
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
-    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), vis=True, iter_no=args.iters,
+    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), vis=args.visualization, iter_no=args.iters,
                 ffs_per_step=args.ffs, show_score_every=1)
