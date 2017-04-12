@@ -3,6 +3,13 @@ import logging
 from graph import NodeState
 
 
+class Score():
+    def __init__(self, putting_out_time, nodes_saved, nodes_occupied_by_ff):
+        # in iterations
+        self.putting_out_time = putting_out_time
+        self.nodes_saved = nodes_saved
+        self.nodes_occupied_by_ff = nodes_occupied_by_ff
+
 def set_initial_nodes_on_fire(graph, init_nodes, transitions):
     # we will store initial fire in the very first element
     transitions[0] = list()
@@ -52,11 +59,15 @@ def spread_fire(graph, transitions):
 
 
 def evaluate_result(graph):
-    result = 0
+    saved_ff = 0
+    saved_no_ff = 0
     for node in graph.nodes.values():
         if node.state != NodeState.BURNING:
-            result += 1
-    return result
+            if node.state == NodeState.DEFENDED:
+                saved_ff += 1
+            else:
+                saved_no_ff += 1
+    return saved_ff, saved_no_ff
 
 
 def simulation(graph, solution, init_nodes, ff_per_step):
@@ -74,7 +85,8 @@ def simulation(graph, solution, init_nodes, ff_per_step):
         iterations += 1
     logging.info("It took {} iterations for the fire to stop spreading".format(iterations))
 
-    result = evaluate_result(graph)
-    logging.info("Result: {} (saved nodes)".format(result))
+    saved_ff, saved_no_ff = evaluate_result(graph)
+    all_saved = saved_ff + saved_no_ff
+    logging.info("Result: {} (saved nodes, from them {} occupied by firefighters)".format(all_saved, saved_ff))
 
-    return transitions, iterations, result
+    return transitions, Score(iterations, all_saved, saved_ff)

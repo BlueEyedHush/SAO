@@ -15,13 +15,14 @@ def benchmark(algorithm, test_configurations, iterations=1, header=True):
         average value & relative stddev value'll be reported
     :return:
     """
-    f = "{:>8} {:>8} {:>8} {:>8} {:>8} {:>8}"
+    f = "{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}"
     if header:
-        print f.format("#VERTEX", "DENSITY", "ORIGINS", "FFSSTEP", "ITERS", "SCORE")
+        print f.format("#VERTEX", "DENSITY", "ORIGINS", "FFSSTEP", "ITERS", "SAVED", "SAVED_FF")
 
     for vertex_no, density, ffs_per_step, algo_iters in test_configurations:
         def _print_result(score):
-            print f.format(vertex_no, density, len(sn), ffs_per_step, algo_iters, score)
+            print f.format(vertex_no, density, len(sn), ffs_per_step, algo_iters,
+                           score.perc_saved_nodes, score.perc_saved_occupied_by_ff)
 
         g = load_graph(vertex_no, density)
         sn = map(lambda v: v.id, g.get_starting_nodes())
