@@ -42,6 +42,11 @@ class AlgoIn():
         self.show_score_every = show_score_every
 
 
+class AlgoOut():
+    def __init__(self, best_solution, best_solution_score):
+        self.best_solution = best_solution
+        self.best_solution_score = best_solution_score
+
 def _offer_visualization(G, transitions, solution, score, comment=""):
     if comment:
         print "New solution ({}), score: {}".format(comment, score)
@@ -131,7 +136,8 @@ def simple_genetic_crossover(params):
         if params.show_score_every is not None and i % params.show_score_every == 0:
             print "Scores after iteration {}: {}".format(i, map(lambda (_, score): str(score), curr_solutions))
 
-    return curr_solutions[0]
+    best_solution, score = curr_solutions[0]
+    return AlgoOut(best_solution, score)
 
 
 solvers = {
