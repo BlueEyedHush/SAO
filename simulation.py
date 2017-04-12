@@ -3,6 +3,13 @@ import logging
 from graph import NodeState
 
 
+class Score():
+    def __init__(self, putting_out_time, nodes_saved, nodes_occupied_by_ff):
+        # in iterations
+        self.putting_out_time = putting_out_time
+        self.nodes_saved = nodes_saved
+        self.nodes_occupied_by_ff = nodes_occupied_by_ff
+
 def set_initial_nodes_on_fire(graph, init_nodes, transitions):
     # we will store initial fire in the very first element
     transitions[0] = list()
@@ -82,4 +89,4 @@ def simulation(graph, solution, init_nodes, ff_per_step):
     all_saved = saved_ff + saved_no_ff
     logging.info("Result: {} (saved nodes, from them {} occupied by firefighters)".format(all_saved, saved_ff))
 
-    return transitions, iterations, all_saved, saved_ff
+    return transitions, Score(iterations, all_saved, saved_ff)

@@ -19,6 +19,14 @@ def log_solution(sol, score):
     logging.info("solution: {}, score: {} /smaller-better/".format(sol, score))
 
 
+class AlgoScore():
+    def __init__(self, perc_saved_nodes, perc_saved_occupied_by_ff):
+        self.perc_saved_nodes = perc_saved_nodes
+        self.perc_saved_occupied_by_ff = perc_saved_occupied_by_ff
+
+    def __str__(self):
+        return "Saved {} ({} occupied by FFs)".format(self.perc_saved_nodes, self.perc_saved_occupied_by_ff)
+
 def _offer_visualization(G, transitions, solution, score, comment=""):
     if comment:
         print "New solution ({}), score: {}".format(comment, score)
@@ -39,12 +47,11 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
 
     def simulate(solution, comment=""):
-        transitions, iterations, saved_nodes, saved_ff = simulation(G, solution, init_nodes, ffs_per_step)
-        score = float(saved_nodes) / len(G.get_nodes())
-        perc_saved_ff = float(saved_ff) / len(G.get_nodes())
+        transitions, solution_score = simulation(G, solution, init_nodes, ffs_per_step)
+        score = AlgoScore(perc_saved_nodes=float(solution_score.nodes_saved) / len(G.get_nodes()),
+                          perc_saved_occupied_by_ff=float(solution_score.nodes_occupied_by_ff) / len(G.get_nodes()))
         if vis:
-            score_for_vis = "{} (from which {} occupied by FFs)".format(score, perc_saved_ff)
-            _offer_visualization(G, transitions, solution, score_for_vis, comment)
+            _offer_visualization(G, transitions, solution, score, comment)
         return score
 
     # list of 2-tuples (solution, score)
@@ -54,7 +61,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         solution = list(base_sol)
         random.shuffle(solution)
         score = simulate(solution, comment)
-        log_solution(solution, score)
+        log_solution(solution, score.perc_saved_nodes)
         return solution, score
 
     # build initial solutions
@@ -64,7 +71,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
 
     # sort list by scores desc
     def sort_by_score(solutions):
-        sorted(solutions, key=lambda (sol, score): score)
+        sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes)
 
     sort_by_score(curr_solutions)
 
@@ -113,7 +120,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         curr_solutions = curr_solutions[0:population_size]
 
         if show_score_every is not None and i % show_score_every == 0:
-            print "Scores after iteration {}: {}".format(i, map(lambda (_, score): score, curr_solutions))
+            print "Scores after iteration {}: {}".format(i, map(lambda (_, score): str(score), curr_solutions))
 
     return curr_solutions[0]
 
