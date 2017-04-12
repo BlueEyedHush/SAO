@@ -39,10 +39,12 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
 
     def simulate(solution, comment=""):
-        transitions, iterations, saved_nodes = simulation(G, solution, init_nodes, ffs_per_step)
+        transitions, iterations, saved_nodes, saved_ff = simulation(G, solution, init_nodes, ffs_per_step)
         score = float(saved_nodes) / len(G.get_nodes())
+        perc_saved_ff = float(saved_ff) / len(G.get_nodes())
         if vis:
-            _offer_visualization(G, transitions, solution, score, comment)
+            score_for_vis = "{} (from which {} occupied by FFs)".format(score, perc_saved_ff)
+            _offer_visualization(G, transitions, solution, score_for_vis, comment)
         return score
 
     # list of 2-tuples (solution, score)

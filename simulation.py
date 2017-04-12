@@ -52,11 +52,15 @@ def spread_fire(graph, transitions):
 
 
 def evaluate_result(graph):
-    result = 0
+    saved_ff = 0
+    saved_no_ff = 0
     for node in graph.nodes.values():
         if node.state != NodeState.BURNING:
-            result += 1
-    return result
+            if node.state == NodeState.DEFENDED:
+                saved_ff += 1
+            else:
+                saved_no_ff += 1
+    return saved_ff, saved_no_ff
 
 
 def simulation(graph, solution, init_nodes, ff_per_step):
@@ -74,7 +78,8 @@ def simulation(graph, solution, init_nodes, ff_per_step):
         iterations += 1
     logging.info("It took {} iterations for the fire to stop spreading".format(iterations))
 
-    result = evaluate_result(graph)
-    logging.info("Result: {} (saved nodes)".format(result))
+    saved_ff, saved_no_ff = evaluate_result(graph)
+    all_saved = saved_ff + saved_no_ff
+    logging.info("Result: {} (saved nodes, from them {} occupied by firefighters)".format(all_saved, saved_ff))
 
-    return transitions, iterations, result
+    return transitions, iterations, all_saved, saved_ff
