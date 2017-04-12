@@ -167,27 +167,3 @@ def pmx_with_single_crossover_point(parent1, parent2):
         swap(child2, i, child2.index(element_to_swap))
 
     return child1, child2
-
-
-a = [1, 2, 3, 4]
-b = [4, 3, 2, 1]
-c = [8, 4, 7, 3, 6, 2, 5, 1, 9, 0]
-d = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-e = [5, 7, 1, 3, 6, 4, 2]
-f = [4, 6, 2, 7, 3, 1, 5]
-
-print a
-print b
-# print c
-# print d
-# print e
-# print f
-# print pmx_with_single_crossover_point(a, b)
-# print pmx_with_single_crossover_point(c, d)
-# print pmx_with_single_crossover_point(e, f)
-# print pmx_crossover(c, d)[0]
-
-print injection_crossover(a, b)
-# http://permutationcity.10gbhost.com/projects/mutants/tsp.html?i=2
-# http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/Order1CrossoverOperator.aspx
-# http://krzysztof-michalak.pl/papers/michalak2014_ideal_04.pdf
