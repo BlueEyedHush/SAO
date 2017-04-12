@@ -42,7 +42,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         transitions, iterations, saved_nodes = simulation(G, solution, init_nodes, ffs_per_step)
         score = float(saved_nodes) / len(G.get_nodes())
         if vis:
-            _offer_visualization(G, transitions, solution, comment, score)
+            _offer_visualization(G, transitions, solution, score, comment)
         return score
 
     # list of 2-tuples (solution, score)
