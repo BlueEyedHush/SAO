@@ -65,29 +65,35 @@ def cycle_crossover(parent1, parent2):
 
 
 def injection_crossover(parent1, parent2):
-    # TODO: think if it is possible to get second child
+    """ Also called order 1 crossover """
 
-    # select distinct points a < b between 0 and len(child1)
-    a, b = random.sample(range(len(parent1)), 2)
-    if a > b:
-        a, b = b, a
+    def get_child(p1, p2):
+        # select distinct points a < b between 0 and len(parent1)
+        a, b = random.sample(range(len(p1)), 2)
+        if a > b:
+            a, b = b, a
 
-    # Make an empty child chromosome of length len(child1)
-    result = [None for _ in xrange(len(parent1))]
+        # Make an empty child chromosome of length len(child)
+        child = [None for _ in xrange(len(p1))]
 
-    # Copy over the genes of child1 from a to (but not including) b into the corresponding genes of the child
-    ab = parent1[a:b]
-    result[a:b] = ab
+        # Copy over the genes of child from a to (but not including) b into the corresponding genes of the child
+        ab = p1[a:b]
+        child[a:b] = ab
 
-    # Fill in the rest of the genes of the child with the genes from child2, in the order in which they appear in child2,
-    # making sure not to include alleles that already exist in the child
-    remainder = [e for e in parent2 if e not in ab]
-    for i in xrange(a):
-        result[i] = remainder.pop(0)
-    for i in xrange(b, len(parent1)):
-        result[i] = remainder.pop(0)
+        # Fill in the rest of the genes of the child with the genes from child2, in the order in which they appear in child2,
+        # making sure not to include alleles that already exist in the child
+        remainder = [e for e in p2 if e not in ab]
+        for i in xrange(a):
+            child[i] = remainder.pop(0)
+        for i in xrange(b, len(p1)):
+            child[i] = remainder.pop(0)
 
-    return result
+        return child
+
+    child1 = get_child(parent1, parent2)
+    child2 = get_child(parent2, parent1)
+
+    return child1, child2
 
 
 def pmx_crossover(parent1, parent2):
@@ -97,41 +103,44 @@ def pmx_crossover(parent1, parent2):
         http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/PMXCrossoverOperator.aspx
     """
 
-    # TODO: invert parents to get second child
+    def get_child(p1, p2):
+        a, b = random.sample(range(len(p1) + 1), 2)
+        if a > b:
+            a, b = b, a
 
-    a, b = random.sample(range(len(parent1) + 1), 2)
-    if a > b:
-        a, b = b, a
+        child = copy.deepcopy(p1)
 
-    child1 = copy.deepcopy(parent1)
-    child2 = copy.deepcopy(parent2)
+        not_used_values = list()
+        for v in p2[a:b]:
+            if v not in p1[a:b]:
+                not_used_values.append(v)
 
-    not_used_values = list()
-    for v in parent2[a:b]:
-        if v not in parent1[a:b]:
-            not_used_values.append(v)
+        used_indexes = range(a, b)
+        for v in not_used_values:
 
-    used_indexes = range(a, b)
-    for v in not_used_values:
+            inserted = False
+            p2_val = v
+            while not inserted:
+                index_in_p2 = p2.index(p2_val)
+                p1_val = p1[index_in_p2]
+                new_index_in_p2 = p2.index(p1_val)
+                if a <= new_index_in_p2 < b:
+                    p2_val = p2[new_index_in_p2]
+                else:
+                    child[new_index_in_p2] = v
+                    used_indexes.append(new_index_in_p2)
+                    inserted = True
 
-        inserted = False
-        p2_val = v
-        while not inserted:
-            index_in_p2 = parent2.index(p2_val)
-            p1_val = parent1[index_in_p2]
-            new_index_in_p2 = parent2.index(p1_val)
-            if a <= new_index_in_p2 < b:
-                p2_val = parent2[new_index_in_p2]
-            else:
-                child1[new_index_in_p2] = v
-                used_indexes.append(new_index_in_p2)
-                inserted = True
+        for i in range(0, len(p1)):
+            if i not in used_indexes:
+                child[i] = p2[i]
 
-    for i in range(0, len(parent1)):
-        if i not in used_indexes:
-            child1[i] = parent2[i]
+        return child
 
-    return child1
+    child1 = get_child(parent1, parent2)
+    child2 = get_child(parent2, parent1)
+
+    return child1, child2
 
 
 def pmx_with_single_crossover_point(parent1, parent2):
@@ -158,3 +167,27 @@ def pmx_with_single_crossover_point(parent1, parent2):
         swap(child2, i, child2.index(element_to_swap))
 
     return child1, child2
+
+
+a = [1, 2, 3, 4]
+b = [4, 3, 2, 1]
+c = [8, 4, 7, 3, 6, 2, 5, 1, 9, 0]
+d = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+e = [5, 7, 1, 3, 6, 4, 2]
+f = [4, 6, 2, 7, 3, 1, 5]
+
+print a
+print b
+# print c
+# print d
+# print e
+# print f
+# print pmx_with_single_crossover_point(a, b)
+# print pmx_with_single_crossover_point(c, d)
+# print pmx_with_single_crossover_point(e, f)
+# print pmx_crossover(c, d)[0]
+
+print injection_crossover(a, b)
+# http://permutationcity.10gbhost.com/projects/mutants/tsp.html?i=2
+# http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/Order1CrossoverOperator.aspx
+# http://krzysztof-michalak.pl/papers/michalak2014_ideal_04.pdf
