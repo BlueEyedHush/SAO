@@ -11,7 +11,9 @@ from visualize import visualize_simulation
 def defaults():
     return {
         'algo_iter_no': 3,
-        'ffs_per_step': 1
+        'ffs_per_step': 1,
+        'vis': False,
+        'show_score_every': None,  # don't show
     }
 
 
@@ -23,6 +25,23 @@ class AlgoScore():
     def __str__(self):
         return "Saved {} ({} occupied by FFs)".format(self.perc_saved_nodes, self.perc_saved_occupied_by_ff)
 
+
+class AlgoIn():
+    def __init__(self,
+                 G,
+                 init_nodes,
+                 vis=defaults()["vis"],
+                 iter_no=defaults()["algo_iter_no"],
+                 ffs_per_step=defaults()["ffs_per_step"],
+                 show_score_every=defaults()["show_score_every"]):
+        self.G = G
+        self.init_nodes = init_nodes
+        self.vis = vis
+        self.iter_no = iter_no
+        self.ffs_per_step = ffs_per_step
+        self.show_score_every = show_score_every
+
+
 def _offer_visualization(G, transitions, solution, score, comment=""):
     if comment:
         print "New solution ({}), score: {}".format(comment, score)
@@ -31,8 +50,9 @@ def _offer_visualization(G, transitions, solution, score, comment=""):
         visualize_simulation(G, transitions, solution)
 
 
-def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_iter_no'],
-                             ffs_per_step=defaults()['ffs_per_step'], show_score_every=None):
+def simple_genetic_crossover(params):
+    G = params.G
+
     population_size = 4
     crossover_count = max(int(population_size * 0.5),
                           1)  # split point - how many firefighters are taken from 1st parent, how many from the 2nd
@@ -43,10 +63,10 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         raise Exception("population_size must be >= crossover_count+1 && >= mutation_count")
 
     def process_new_solution(solution, comment=""):
-        transitions, solution_score = simulation(G, solution, init_nodes, ffs_per_step)
+        transitions, solution_score = simulation(G, solution, params.init_nodes, params.ffs_per_step)
         score = AlgoScore(perc_saved_nodes=float(solution_score.nodes_saved) / len(G.get_nodes()),
                           perc_saved_occupied_by_ff=float(solution_score.nodes_occupied_by_ff) / len(G.get_nodes()))
-        if vis:
+        if params.vis:
             _offer_visualization(G, transitions, solution, score, comment)
         return score
 
@@ -70,7 +90,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
 
     sort_by_score(curr_solutions)
 
-    for i in range(0, iter_no):
+    for i in range(0, params.iter_no):
         logging.info("**** ITERATION {} ****".format(i))
 
         # crossover
@@ -108,7 +128,7 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         # keep only population_size of the strongest
         curr_solutions = curr_solutions[0:population_size]
 
-        if show_score_every is not None and i % show_score_every == 0:
+        if params.show_score_every is not None and i % params.show_score_every == 0:
             print "Scores after iteration {}: {}".format(i, map(lambda (_, score): str(score), curr_solutions))
 
     return curr_solutions[0]
@@ -148,11 +168,15 @@ if __name__ == "__main__":
     parser.add_argument('-z', '--visualization',
                         help='enables visualization for solutions',
                         action='store_true',
-                        default=False)
+                        default=defaults()['vis'])
 
     args = parser.parse_args()
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
-    solver_func(g, map(lambda v: int(v.id), g.get_starting_nodes()), vis=args.visualization, iter_no=args.iters,
-                ffs_per_step=args.ffs, show_score_every=1)
+    solver_func(AlgoIn(g,
+                       map(lambda v: int(v.id), g.get_starting_nodes()),
+                       args.visualization,
+                       args.iters,
+                       args.ffs,
+                       show_score_every=1))
