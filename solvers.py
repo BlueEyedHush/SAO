@@ -15,10 +15,6 @@ def defaults():
     }
 
 
-def log_solution(sol, score):
-    logging.info("solution: {}, score: {} /smaller-better/".format(sol, score))
-
-
 class AlgoScore():
     def __init__(self, perc_saved_nodes, perc_saved_occupied_by_ff):
         self.perc_saved_nodes = perc_saved_nodes
@@ -63,14 +59,14 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
         score = process_new_solution(solution, comment)
         return solution, score
 
+    # sort list by scores desc
+    def sort_by_score(solutions):
+        sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes)
+
     # build initial solutions
     for i in range(0, population_size):
         solution, score = new_solution_by_shuffling(G.get_nodes(), "initial solution")
         curr_solutions.append((solution, score))
-
-    # sort list by scores desc
-    def sort_by_score(solutions):
-        sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes)
 
     sort_by_score(curr_solutions)
 
@@ -98,18 +94,12 @@ def simple_genetic_crossover(G, init_nodes, vis=False, iter_no=defaults()['algo_
                 raise Exception("duplicate entries in child genome!")
 
             score = process_new_solution(child, "crossover result")
-            logging.info(
-                "crossing {} /score {}/ with {} /score {}/, got {} /score {}/".format(parents[0][0], parents[0][1],
-                                                                                      parents[1][0], parents[1][1],
-                                                                                      child, score))
             curr_solutions.append((child, score))
 
         # mutate some individuals
         fittest = curr_solutions[0:mutation_count]
         for sol, score in fittest:
             new_sol, new_score = new_solution_by_shuffling(sol, "mutation result")
-            logging.info(
-                "mutated solution {} /score {}/ built from {} /score {}/".format(new_sol, new_score, sol, score))
             curr_solutions.append((new_sol, new_score))
 
         # resort
@@ -161,8 +151,6 @@ if __name__ == "__main__":
                         default=False)
 
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.WARN)
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     solver_func = solvers[args.algorithm]
