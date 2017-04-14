@@ -5,6 +5,7 @@ from logging import getLogger
 from generate import load_graph
 from frameworks import AlgoIn, ga_framework
 from solvers import SimpleGeneticCrossover
+from logging_configs import configure_logging
 
 bench_results_logger = getLogger("benchmark_results")
 
@@ -35,6 +36,8 @@ def benchmark(operators, test_configurations, iterations=1, header=True):
 
 
 if __name__ == "__main__":
+    configure_logging("benchmark_results=info")
+
     V_NO = [10, 25, 50]
     DENSITIES = [0.1, 0.5, 0.9]
     ALGO_ITERS = [5, 50, 100]

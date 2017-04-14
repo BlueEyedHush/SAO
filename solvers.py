@@ -2,6 +2,7 @@ import random
 import argparse
 from frameworks import Operators, AlgoIn, ga_framework, DEFAULTS
 from generate import load_graph
+from logging_configs import configure_logging
 
 class SimpleGeneticCrossover(object, Operators):
     population_size = 4
@@ -77,8 +78,13 @@ if __name__ == "__main__":
                         help='number of vertices in graph',
                         type=int,
                         default=10)
+    parser.add_argument('-l', '--loggers',
+                        help='configuration of loggers (i.e. graph_printing=info,benchmark_results=info)',
+                        default='')
 
     args = parser.parse_args()
+
+    configure_logging(args.loggers)
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
     operators = solvers[args.algorithm]
