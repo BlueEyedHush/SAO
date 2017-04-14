@@ -1,7 +1,8 @@
-import logging
+from logging import getLogger
 
 from graph import NodeState
 
+logger = getLogger("simulation")
 
 class Score():
     def __init__(self, putting_out_time, nodes_saved, nodes_occupied_by_ff):
@@ -83,10 +84,10 @@ def simulation(graph, solution, init_nodes, ff_per_step):
         solution_index, transitions = assign_firefighters(graph, solution, solution_index, ff_per_step, transitions)
         transitions = spread_fire(graph, transitions)
         iterations += 1
-    logging.info("It took {} iterations for the fire to stop spreading".format(iterations))
+    logger.info("It took {} iterations for the fire to stop spreading".format(iterations))
 
     saved_ff, saved_no_ff = evaluate_result(graph)
     all_saved = saved_ff + saved_no_ff
-    logging.info("Result: {} (saved nodes, from them {} occupied by firefighters)".format(all_saved, saved_ff))
+    logger.info("Result: {} (saved nodes, from them {} occupied by firefighters)".format(all_saved, saved_ff))
 
     return transitions, Score(iterations, all_saved, saved_ff)

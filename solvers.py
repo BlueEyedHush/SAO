@@ -77,10 +77,6 @@ if __name__ == "__main__":
                         help='number of vertices in graph',
                         type=int,
                         default=10)
-    parser.add_argument('-z', '--visualization',
-                        help='enables visualization for solutions',
-                        action='store_true',
-                        default=DEFAULTS['vis'])
 
     args = parser.parse_args()
 
@@ -89,7 +85,6 @@ if __name__ == "__main__":
     ga_framework(AlgoIn(g,
                         map(lambda v: int(v.id), g.get_starting_nodes()),
                         operators=operators,
-                        vis=args.visualization,
                         iter_no=args.iters,
                         ffs_per_step=args.ffs,
-                        show_score_every=1))
+                        ))
