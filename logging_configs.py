@@ -64,7 +64,11 @@ def parse_str_config(config_string):
 
     if config_string:
         for logger_conf in config_string.split(","):
-            raw_logger_name, raw_level = logger_conf.split("=")
+            if "=" in logger_conf:
+                raw_logger_name, raw_level = logger_conf.split("=")
+            else:
+                raw_logger_name = logger_conf
+                raw_level = "INFO"
             logger_name = raw_logger_name.lower()
             level = logging.getLevelName(raw_level.upper())
             config_dict["loggers"][logger_name] = {"level": level}
