@@ -1,9 +1,10 @@
-import logging
+from logging import getLogger
 
 from enum import Enum
 
 NodeState = Enum('NodeState', 'UNTOUCHED DEFENDED BURNING')
 
+logger = getLogger("graph_printing")
 
 class Graph(object):
     def __init__(self):
@@ -64,7 +65,7 @@ class Graph(object):
     def print_graph(self):
         """ For the time being a dumb method to help with debugging """
         for node in self.nodes.values():
-            logging.info("Node {}: {}".format(node.id, node.state))
+            logger.info("Node {}: {}".format(node.id, node.state))
 
     def reset_metadata(self):
         for v in self.nodes.values():
@@ -85,7 +86,7 @@ class Node(object):
 
     def print_node(self):
         """ Print the graph structure accessible from this node """
-        logging.info("Node {}: {}".format(self.id, self.neighbors))
+        logger.info("Node {}: {}".format(self.id, self.neighbors))
 
     def reset_metadata(self):
         self.state = NodeState.UNTOUCHED

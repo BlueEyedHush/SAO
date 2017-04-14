@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import networkx as nx
-import logging
+from logging import getLogger
 from graph import NodeState
 
+logger = getLogger("visualization")
 
 def on_key(event, args):
     if event.key == 'right':
@@ -50,7 +51,7 @@ def draw_graph(graph, untouched_nodes, burning_nodes, defended_nodes, edges, pos
 
 
 def draw_next_step(args):
-    logging.info("Drawing next step...")
+    logger.info("Drawing next step...")
 
     future_transitions = args['future_transitions']
     shown_transitions = args['shown_transitions']
@@ -74,7 +75,7 @@ def draw_next_step(args):
 
 
 def draw_previous_step(args):
-    logging.info("Falling back to previous step...")
+    logger.info("Falling back to previous step...")
 
     future_transitions = args['future_transitions']
     shown_transitions = args['shown_transitions']

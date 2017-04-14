@@ -1,12 +1,16 @@
 from sys import stdin
+from logging import getLogger, INFO
 from simulation import simulation
 from visualize import visualize_simulation
+
+algo_vis_logger = getLogger("algo_vis")
+algo_scores_logger = getLogger("algo_scores")
+
+SHOW_SCORE_EVERY = 1
 
 DEFAULTS = {
     'algo_iter_no': 3,
     'ffs_per_step': 1,
-    'vis': False,
-    'show_score_every': None,  # don't show
 }
 
 class Operators():
@@ -100,16 +104,13 @@ class AlgoIn():
                  G,
                  init_nodes,
                  operators=Operators(),
-                 vis=DEFAULTS["vis"],
                  iter_no=DEFAULTS["algo_iter_no"],
                  ffs_per_step=DEFAULTS["ffs_per_step"],
-                 show_score_every=DEFAULTS["show_score_every"]):
+                 ):
         self.G = G
         self.init_nodes = init_nodes
-        self.vis = vis
         self.iter_no = iter_no
         self.ffs_per_step = ffs_per_step
-        self.show_score_every = show_score_every
 
         self.operators = operators
 
@@ -120,12 +121,12 @@ class AlgoOut():
         self.best_solution_score = best_solution_score
 
 
-def _offer_visualization(G, transitions, solution, score, comment=""):
-    if comment:
-        print "New solution ({}), score: {}".format(comment, score)
-    print "Show visualization? [y/N]: "
-    if stdin.readline().strip().startswith("y"):
-        visualize_simulation(G, transitions, solution)
+def _offer_visualization(G, transitions, solution, score, comment="no comment"):
+    if algo_vis_logger.isEnabledFor(INFO):
+        algo_vis_logger.info("New solution ({}), score: {}".format(comment, score))
+        print "Show visualization? [y/N]: "
+        if stdin.readline().strip().startswith("y"):
+            visualize_simulation(G, transitions, solution)
 
 
 # sort list by scores desc
@@ -139,8 +140,7 @@ def _process_new_solution(params, solution, comment=""):
     transitions, solution_score = simulation(G, solution, params.init_nodes, params.ffs_per_step)
     score = AlgoScore(perc_saved_nodes=float(solution_score.nodes_saved) / len(G.get_nodes()),
                       perc_saved_occupied_by_ff=float(solution_score.nodes_occupied_by_ff) / len(G.get_nodes()))
-    if params.vis:
-        _offer_visualization(G, transitions, solution, score, comment)
+    _offer_visualization(G, transitions, solution, score, comment)
     return score
 
 
@@ -208,8 +208,9 @@ def ga_framework(params):
         new_population = params.operators.succession(es)
         es.population = _sort_by_score(new_population)
 
-        if params.show_score_every is not None and i % params.show_score_every == 0:
-            print "Scores after iteration {}: {}".format(i, map(lambda (_, score): str(score), es.population))
+        if i % SHOW_SCORE_EVERY == 0:
+            algo_scores_logger.info("Scores after iteration {}: {}"
+                                    .format(i, map(lambda (_, score): str(score), es.population)))
 
         es.reset_per_iteration_state()
 

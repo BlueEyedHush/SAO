@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
 import itertools
-import logging
+from logging import getLogger
 from generate import load_graph
 from frameworks import AlgoIn, ga_framework
 from solvers import SimpleGeneticCrossover
+from logging_configs import configure_logging
 
+bench_results_logger = getLogger("benchmark_results")
 
 def benchmark(operators, test_configurations, iterations=1, header=True):
     """
@@ -18,12 +20,12 @@ def benchmark(operators, test_configurations, iterations=1, header=True):
     """
     f = "{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}"
     if header:
-        print f.format("#VERTEX", "DENSITY", "ORIGINS", "FFSSTEP", "ITERS", "SAVED", "SAVED_FF")
+        bench_results_logger.info(f.format("#VERTEX", "DENSITY", "ORIGINS", "FFSSTEP", "ITERS", "SAVED", "SAVED_FF"))
 
     for vertex_no, density, ffs_per_step, algo_iters in test_configurations:
         def _print_result(score):
-            print f.format(vertex_no, density, len(sn), ffs_per_step, algo_iters,
-                           score.perc_saved_nodes, score.perc_saved_occupied_by_ff)
+            bench_results_logger.info(f.format(vertex_no, density, len(sn), ffs_per_step, algo_iters,
+                                               score.perc_saved_nodes, score.perc_saved_occupied_by_ff))
 
         g = load_graph(vertex_no, density)
         sn = map(lambda v: v.id, g.get_starting_nodes())
@@ -34,7 +36,7 @@ def benchmark(operators, test_configurations, iterations=1, header=True):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.WARN)
+    configure_logging("benchmark_results=info")
 
     V_NO = [10, 25, 50]
     DENSITIES = [0.1, 0.5, 0.9]
