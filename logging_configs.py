@@ -48,6 +48,11 @@ _default = {
             'level': 'WARN',
             'propagate': True
         },
+        'per_iter_stats': {
+            'handlers': ['default'],
+            'level': 'WARN',
+            'propagate': True
+        },
     }
 }
 

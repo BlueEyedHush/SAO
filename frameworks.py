@@ -5,6 +5,8 @@ from visualize import visualize_simulation
 
 algo_vis_logger = getLogger("algo_vis")
 algo_scores_logger = getLogger("algo_scores")
+algo_per_iter_stats_logger = getLogger("per_iter_stats")
+per_iter_stats_format = "{:>10} {:>10} {:>12} {:>10}"
 
 SHOW_SCORE_EVERY = 1
 
@@ -172,6 +174,8 @@ class ExecutionState():
 
 
 def ga_framework(params):
+    algo_per_iter_stats_logger.info(per_iter_stats_format.format("ITER_NO", "MAX_SAVED", "MAX_SAVED_FF", "SCORES_SUM"))
+
     es = ExecutionState(params)
 
     for specimen in params.operators.population_initialization(es):
@@ -211,6 +215,13 @@ def ga_framework(params):
         if i % SHOW_SCORE_EVERY == 0:
             algo_scores_logger.info("Scores after iteration {}: {}"
                                     .format(i, map(lambda (_, score): str(score), es.population)))
+
+        if algo_per_iter_stats_logger.isEnabledFor(INFO):
+            _, max_score = es.population[0]
+            max_saved = max_score.perc_saved_nodes
+            max_saved_ff = max_score.perc_saved_occupied_by_ff
+            sum_scores = sum(map(lambda (_, score): score.perc_saved_nodes, es.population))
+            algo_per_iter_stats_logger.info(per_iter_stats_format.format(i, max_saved, max_saved_ff, sum_scores))
 
         es.reset_per_iteration_state()
 
