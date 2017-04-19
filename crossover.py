@@ -1,4 +1,5 @@
 import copy
+import heapq
 import random
 
 
@@ -67,11 +68,7 @@ def cycle_crossover(parent1, parent2):
 def injection_crossover(parent1, parent2):
     """ Also called order 1 crossover """
 
-    def get_child(p1, p2):
-        # select distinct points a < b between 0 and len(parent1)
-        a, b = random.sample(range(len(p1)), 2)
-        if a > b:
-            a, b = b, a
+    def get_child(p1, p2, a, b):
 
         # Make an empty child chromosome of length len(child)
         child = [None for _ in xrange(len(p1))]
@@ -90,8 +87,70 @@ def injection_crossover(parent1, parent2):
 
         return child
 
-    child1 = get_child(parent1, parent2)
-    child2 = get_child(parent2, parent1)
+    # select distinct points a < b between 0 and len(parent1)
+    # apply it to both parents to maintain symmetry
+    a, b = random.sample(range(len(parent1)), 2)
+    if a > b:
+        a, b = b, a
+
+    child1 = get_child(parent1, parent2, a, b)
+    child2 = get_child(parent2, parent1, a, b)
+
+    return child1, child2
+
+
+def multiple_injection_crossover(parent1, parent2):
+    """ Also called multiple order crossover
+        As presented here:
+        http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/OrderMultipleCrossoverOperator.aspx
+    """
+
+    def get_child(p1, p2, swaths, free_ranges):
+
+        child = [None for _ in xrange(len(p1))]
+
+        for a, b in swaths:
+            ab = p1[a:b + 1]
+            child[a:b + 1] = ab
+
+        remainder = [e for e in p2 if e not in child]
+        for start, end in free_ranges:
+            for i in xrange(start, end + 1):
+                child[i] = remainder.pop(0)
+
+        return child
+
+    SWATHS_FACTOR = 0.2
+    population_size = len(parent1)
+    number_of_swaths = int(population_size * SWATHS_FACTOR)
+    max_swath_size = max(int(population_size / number_of_swaths) - (number_of_swaths / 2), 0)
+
+    free_ranges = [(0, len(parent1) - 1)]
+    swaths = list()
+
+    # determine swaths
+    for _ in xrange(number_of_swaths):
+        if free_ranges:
+            longest_free_range = heapq.nlargest(1, free_ranges, key=lambda r: abs(r[0] - r[1]))[0]
+            # we need range with at least two elements
+            if longest_free_range[0] != longest_free_range[1]:
+                a, b = random.sample(range(longest_free_range[0], longest_free_range[1] + 1), 2)
+                if a > b:
+                    a, b = b, a
+                if (b - a) > max_swath_size:
+                    b = a + max_swath_size
+                swaths.append((a, b))
+
+                # the longest free range has been divided into 2 smaller free ranges
+                former_range_start, former_range_end = longest_free_range
+                free_ranges.remove(longest_free_range)
+                if former_range_start != a:
+                    free_ranges.append((former_range_start, a - 1))
+                if former_range_end != b:
+                    free_ranges.append((b + 1, former_range_end))
+
+    child1 = get_child(parent1, parent2, swaths, free_ranges)
+    child2 = get_child(parent2, parent1, swaths, free_ranges)
 
     return child1, child2
 
@@ -103,10 +162,7 @@ def pmx_crossover(parent1, parent2):
         http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/PMXCrossoverOperator.aspx
     """
 
-    def get_child(p1, p2):
-        a, b = random.sample(range(len(p1) + 1), 2)
-        if a > b:
-            a, b = b, a
+    def get_child(p1, p2, a, b):
 
         child = copy.deepcopy(p1)
 
@@ -137,8 +193,13 @@ def pmx_crossover(parent1, parent2):
 
         return child
 
-    child1 = get_child(parent1, parent2)
-    child2 = get_child(parent2, parent1)
+    # calculate range globally to maintain crossover symmetry
+    a, b = random.sample(range(len(parent1) + 1), 2)
+    if a > b:
+        a, b = b, a
+
+    child1 = get_child(parent1, parent2, a, b)
+    child2 = get_child(parent2, parent1, a, b)
 
     return child1, child2
 
