@@ -97,7 +97,23 @@ def random_swap_mutation(chromosome):
 
 
 def scramble_mutation(chromosome):
-    raise NotImplementedError()
+    """ Picks up a random swath (range) and performs random swaps within the swath.
+        Number of swaps is equal to swath length.
+    """
+
+    swath_size = random.randint(2, len(chromosome) - 1)
+    a = random.randint(0, len(chromosome) - swath_size - 1)
+    b = a + swath_size
+
+    for _ in xrange(b - a):
+        index1 = random.randint(a, b)
+        index2 = random.randint(a, b)
+        while index1 == index2:
+            index1 = random.randint(a, b)
+            index2 = random.randint(a, b)
+        chromosome[index1], chromosome[index2] = chromosome[index2], chromosome[index1]
+
+    return chromosome
 
 
 def single_swap_mutation(chromosome):
