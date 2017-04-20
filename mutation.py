@@ -84,7 +84,16 @@ def random_slide_mutation(chromosome):
 
 
 def random_swap_mutation(chromosome):
-    raise NotImplementedError()
+    """ Like single swap, but swaps a random string of consecutive values instead """
+    a, b = random.sample(xrange(len(chromosome)), 2)
+    if a > b:
+        a, b = b, a
+
+    max_swath_size = min(b - a, len(chromosome) - b)
+    swath_size = random.randint(0, max_swath_size)
+
+    return chromosome[:a] + chromosome[b:b + swath_size] + chromosome[a + swath_size:b] + \
+           chromosome[a:a + swath_size] + chromosome[b + swath_size:]
 
 
 def scramble_mutation(chromosome):
