@@ -1,6 +1,15 @@
 import random
 
 
+def adjacent_swap_mutation(chromosome):
+    """ Swaps two adjacent elements """
+    index1 = random.randint(0, len(chromosome) - 2)
+    index2 = index1 + 1
+    chromosome[index1], chromosome[index2] = chromosome[index2], chromosome[index1]
+
+    return chromosome
+
+
 def insertion_mutation(chromosome):
     """ Performs the following mutation:
          - selects random alleles
@@ -120,6 +129,3 @@ def single_swap_mutation(chromosome):
     i, j = random.sample(range(len(chromosome)), 2)
     chromosome[i], chromosome[j] = chromosome[j], chromosome[i]
     return chromosome
-
-
-# TODO: is there an adjacent swap mutation???
