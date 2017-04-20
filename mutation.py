@@ -2,7 +2,30 @@ import random
 
 
 def insertion_mutation(chromosome):
-    raise NotImplementedError()
+    """ Performs the following mutation:
+         - selects random alleles
+         - memorize the position of first selected allele
+         - copy to child non-selected alleles, which precede first selected allele in parent
+         - copy to child all the selected alleles in order of their presence in parent
+         - copy to child all the remaining alleles in order of their presence in parent
+    """
+
+    selected = list()
+    preceding = list()
+    remaining = list()
+
+    allele_selected, allele_non_selected = 1, 0
+    choices = (allele_selected, allele_non_selected)
+    for allele in chromosome:
+        decision = random.choice(choices)
+        if decision == allele_selected:
+            selected.append(allele)
+        elif not selected:
+            preceding.append(allele)
+        else:
+            remaining.append(allele)
+
+    return preceding + selected + remaining
 
 
 def inversion_mutation(chromosome):
@@ -72,5 +95,6 @@ def single_swap_mutation(chromosome):
     i, j = random.sample(range(len(chromosome)), 2)
     chromosome[i], chromosome[j] = chromosome[j], chromosome[i]
     return chromosome
+
 
 # TODO: is there an adjacent swap mutation???
