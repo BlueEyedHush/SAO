@@ -61,11 +61,7 @@ class Operators():
 
     def population_initialization(self, es):
         # print "default population initializer called"
-        all_node_ids = es.params.G.get_nodes().keys()
-        population = []
-        for i in xrange(2):
-            population.append(all_node_ids)
-        return population
+        return self._random_population(es, 2)
 
     def crossover_selection(self, es):
         # print "default selector called"
@@ -90,12 +86,22 @@ class Operators():
     def _strip_score(self, list):
         return map(lambda (specimen, score): specimen, list)
 
+    def _random_population(self, es, size):
+        all_node_ids = es.params.G.get_nodes().keys()
+        population = []
+        for i in xrange(size):
+            population.append(all_node_ids)
+        return population
+
 
 
 class AlgoScore():
     def __init__(self, perc_saved_nodes, perc_saved_occupied_by_ff):
         self.perc_saved_nodes = perc_saved_nodes
         self.perc_saved_occupied_by_ff = perc_saved_occupied_by_ff
+
+    def to_fitness(self):
+        return self.perc_saved_nodes
 
     def __str__(self):
         return "Saved {} ({} occupied by FFs)".format(self.perc_saved_nodes, self.perc_saved_occupied_by_ff)

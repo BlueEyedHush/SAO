@@ -1,63 +1,27 @@
-import random
 import argparse
 from frameworks import Operators, AlgoIn, ga_framework, DEFAULTS
 from generate import load_graph
 from logging_configs import configure_logging
+from operator_adapter import wrap_crossover, wrap_mutation, wrap_selection
+from operators import SELECTION, CROSSOVER, MUTATION
 
-class SimpleGeneticCrossover(object, Operators):
-    population_size = 4
-
-    def __init__(self):
-        Operators.__init__(self)
+class ConfigurableSimpleSolver(object, Operators):
+    def __init__(self, population_size=4, selection_op=None, crossover_op=None, mutation_op=None):
+        super(ConfigurableSimpleSolver, self).__init__()
+        self.population_size = population_size
+        if selection_op is not None:
+            self.crossover_selection = wrap_selection(selection_op, 1, 2)
+        if crossover_op is not None:
+            self.crossover = wrap_crossover(crossover_op)
+        if mutation_op is not None:
+            self.mutation = wrap_mutation(mutation_op)
 
     def population_initialization(self, es):
-        all_node_ids = es.params.G.get_nodes().keys()
-        population = []
-        for i in xrange(SimpleGeneticCrossover.population_size):
-            specimen = list(all_node_ids)
-            random.shuffle(specimen)
-            population.append(specimen)
-        return population
-
-    def crossover_selection(self, es):
-        return [self._strip_score(es.population[0:2])]
-
-    def crossover(self, es, parents):
-        crossover_point = 0.5
-
-        last_from_1st = max(int(len(parents[0]) * crossover_point), 1)
-        first_part = parents[0][0:last_from_1st + 1]
-        second_part = filter(lambda x: x not in first_part, parents[1])
-
-        child = first_part + second_part
-        return [child]
-
-    def mutation_selection(self, es):
-        return self._strip_score(es.population[0:1])
-
-    def mutation(self, es, specimen):
-        i, j = random.sample(xrange(len(specimen)), 2)
-        tmp = specimen[i]
-        specimen[i] = specimen[j]
-        specimen[j] = tmp
-        return specimen
-
-    def succession(self, es):
-        return es.population[0:SimpleGeneticCrossover.population_size]
-
-
-solvers = {
-    "defaults": Operators(),
-    "simple_genetic_crossover": SimpleGeneticCrossover(),
-}
+        return Operators._random_population(self, es, self.population_size)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-a', '--algorithm',
-                        help='algorithm name',
-                        choices=solvers.keys(),
-                        default='simple_genetic_crossover')
     parser.add_argument('-d', '--density',
                         help='edges density; float in range [0..1]',
                         type=float,
@@ -82,12 +46,31 @@ if __name__ == "__main__":
                         help='configuration of loggers (i.e. graph_printing=info,benchmark_results=info)',
                         default='')
 
+    parser.add_argument('-os', '--selection',
+                        help='selection operator',
+                        choices=SELECTION.keys(),
+                        default=SELECTION.keys()[0])
+    parser.add_argument('-oc', '--crossover',
+                        help='crossover operator',
+                        choices=CROSSOVER.keys(),
+                        default=CROSSOVER.keys()[0])
+    parser.add_argument('-om', '--mutation',
+                        help='mutation operator',
+                        choices=MUTATION.keys(),
+                        default=MUTATION.keys()[0])
+
     args = parser.parse_args()
 
     configure_logging(args.loggers)
 
     g = load_graph(args.vertices, args.density, args.starting_vertices)
-    operators = solvers[args.algorithm]
+
+    operators = ConfigurableSimpleSolver(
+        selection_op=SELECTION[args.selection],
+        crossover_op=CROSSOVER[args.crossover],
+        mutation_op=MUTATION[args.mutation],
+    )
+
     ga_framework(AlgoIn(g,
                         map(lambda v: int(v.id), g.get_starting_nodes()),
                         operators=operators,
