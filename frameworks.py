@@ -3,7 +3,8 @@ from logging import getLogger, INFO
 from simulation import simulation
 from visualize import visualize_simulation
 
-algo_vis_logger = getLogger("algo_vis")
+algo_vis_last_logger = getLogger("algo_vis_last")
+new_solution_logger = getLogger("new_solution")
 algo_scores_logger = getLogger("algo_scores")
 algo_per_iter_stats_logger = getLogger("per_iter_stats")
 per_iter_stats_format = "{:>10} {:>10} {:>12} {:>10}"
@@ -129,26 +130,29 @@ class AlgoOut():
         self.best_solution_score = best_solution_score
 
 
-def _offer_visualization(G, transitions, solution, score, comment="no comment"):
-    if algo_vis_logger.isEnabledFor(INFO):
-        algo_vis_logger.info("New solution ({}), score: {}".format(comment, score))
-        print "Show visualization? [y/N]: "
-        if stdin.readline().strip().startswith("y"):
-            visualize_simulation(G, transitions, solution)
-
-
 # sort list by scores desc
 def _sort_by_score(solutions):
     return sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes, reverse=True)
 
 
-def _process_new_solution(params, solution, comment=""):
+def _process_solution(params, solution, comment="", offer_vis=False):
+    def _sol_string():
+        return "Solution (comment: {}), score: {}".format(comment, score)
+
     G = params.G
 
     transitions, solution_score = simulation(G, solution, params.init_nodes, params.ffs_per_step)
     score = AlgoScore(perc_saved_nodes=float(solution_score.nodes_saved) / len(G.get_nodes()),
                       perc_saved_occupied_by_ff=float(solution_score.nodes_occupied_by_ff) / len(G.get_nodes()))
-    _offer_visualization(G, transitions, solution, score, comment)
+
+    if offer_vis and algo_vis_last_logger.isEnabledFor(INFO):
+        print _sol_string()
+        print "Show visualization? [y/N]: "
+        if stdin.readline().strip().startswith("y"):
+            visualize_simulation(G, transitions, solution)
+    elif new_solution_logger.isEnabledFor(INFO):
+        new_solution_logger.info(_sol_string())
+
     return score
 
 
@@ -185,7 +189,7 @@ def ga_framework(params):
     es = ExecutionState(params)
 
     for specimen in params.operators.population_initialization(es):
-        score = _process_new_solution(params, specimen, "initial population")
+        score = _process_solution(params, specimen, "initial population")
         es.population.append((specimen, score))
     es.population = _sort_by_score(es.population)
 
@@ -198,7 +202,7 @@ def ga_framework(params):
             children = params.operators.crossover(es, parents)
             es.children.extend(children)
             for child in es.children:
-                score = _process_new_solution(params, child, "crossover result")
+                score = _process_solution(params, child, "crossover result")
                 es.scored_children.append((child, score))
 
         # mutation
@@ -206,7 +210,7 @@ def ga_framework(params):
         for candidate in es.mutation_candidates:
             specimen_to_mutate = list(candidate)
             mutated_specimen = params.operators.mutation(es, specimen_to_mutate)
-            score = _process_new_solution(params, mutated_specimen, "mutation result")
+            score = _process_solution(params, mutated_specimen, "mutation result")
             es.scored_mutated_specimens.append((mutated_specimen, score))
 
         # add results of crossover & mutation to population
@@ -232,4 +236,6 @@ def ga_framework(params):
         es.reset_per_iteration_state()
 
     best_solution, score = es.population[0]
+    # solely to give chance to visualize
+    _process_solution(params, best_solution, comment="Best solution", offer_vis=True)
     return AlgoOut(best_solution, score)

@@ -38,7 +38,7 @@ _default = {
             'level': 'WARN',
             'propagate': True
         },
-        'algo_vis': {
+        'algo_vis_last': {
             'handlers': ['default'],
             'level': 'WARN',
             'propagate': True
@@ -49,6 +49,11 @@ _default = {
             'propagate': True
         },
         'per_iter_stats': {
+            'handlers': ['default'],
+            'level': 'WARN',
+            'propagate': True
+        },
+        'new_solution': {
             'handlers': ['default'],
             'level': 'WARN',
             'propagate': True
