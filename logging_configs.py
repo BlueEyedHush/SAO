@@ -43,7 +43,7 @@ _default = {
             'level': 'WARN',
             'propagate': True
         },
-        'algo_scores': {
+        'algo_populations': {
             'handlers': ['default'],
             'level': 'WARN',
             'propagate': True

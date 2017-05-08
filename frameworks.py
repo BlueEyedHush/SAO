@@ -5,7 +5,7 @@ from visualize import visualize_simulation
 
 algo_vis_last_logger = getLogger("algo_vis_last")
 new_solution_logger = getLogger("new_solution")
-algo_scores_logger = getLogger("algo_scores")
+algo_populations_logger = getLogger("algo_populations")
 algo_per_iter_stats_logger = getLogger("per_iter_stats")
 per_iter_stats_format = "{:>10} {:>10} {:>12} {:>10}"
 
@@ -105,7 +105,7 @@ class AlgoScore():
         return self.perc_saved_nodes
 
     def __str__(self):
-        return "Saved {} ({} occupied by FFs)".format(self.perc_saved_nodes, self.perc_saved_occupied_by_ff)
+        return "{}|{}".format(self.perc_saved_nodes, self.perc_saved_occupied_by_ff)
 
 
 class AlgoIn():
@@ -154,7 +154,6 @@ def _process_solution(params, solution, comment="", offer_vis=False):
         new_solution_logger.info(_sol_string())
 
     return score
-
 
 class ExecutionState():
     '''
@@ -223,8 +222,8 @@ def ga_framework(params):
         es.population = _sort_by_score(new_population)
 
         if i % SHOW_SCORE_EVERY == 0:
-            algo_scores_logger.info("Scores after iteration {}: {}"
-                                    .format(i, map(lambda (_, score): str(score), es.population)))
+            algo_populations_logger.info("Population after iteration {}: {}"
+                                         .format(i, map(lambda (_, score): str(score), es.population)))
 
         if algo_per_iter_stats_logger.isEnabledFor(INFO):
             _, max_score = es.population[0]

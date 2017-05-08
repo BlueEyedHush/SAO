@@ -49,6 +49,10 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--loggers',
                         help='configuration of loggers (i.e. graph_printing=info,benchmark_results=info)',
                         default='')
+    parser.add_argument('-p', '--population',
+                        help='size of the population',
+                        type=int,
+                        default=10)
 
     parser.add_argument('-os', '--selection',
                         help='selection operator',
@@ -70,6 +74,7 @@ if __name__ == "__main__":
     g = load_graph(args.vertices, args.density, args.starting_vertices)
 
     operators = ConfigurableSimpleSolver(
+        population_size=args.population,
         selection_op=SELECTION[args.selection],
         crossover_op=CROSSOVER[args.crossover],
         mutation_op=MUTATION[args.mutation],
