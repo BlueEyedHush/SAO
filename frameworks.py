@@ -139,7 +139,7 @@ def _offer_visualization(G, transitions, solution, score, comment="no comment"):
 
 # sort list by scores desc
 def _sort_by_score(solutions):
-    return sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes)
+    return sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes, reverse=True)
 
 
 def _process_new_solution(params, solution, comment=""):
