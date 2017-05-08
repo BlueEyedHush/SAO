@@ -19,6 +19,10 @@ class ConfigurableSimpleSolver(object, Operators):
     def population_initialization(self, es):
         return Operators._random_population(self, es, self.population_size)
 
+    def succession(self, es):
+        # print "default succession op"
+        return es.population[0:self.population_size]
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
