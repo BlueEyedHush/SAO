@@ -26,7 +26,7 @@ class ConfigurableSimpleSolver(object, Operators):
 
 
 def run_framework(loggers, population_size, selection, crossover, mutation, iters, ffs, graph_props=None,
-                  input_file=None):
+                  input_file=None, out_csv_file=None):
     configure_logging(loggers)
 
     if input_file:
@@ -48,6 +48,7 @@ def run_framework(loggers, population_size, selection, crossover, mutation, iter
                         operators=operators,
                         iter_no=iters,
                         ffs_per_step=ffs,
+                        csv_file=out_csv_file
                         ))
 
 
