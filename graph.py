@@ -95,10 +95,3 @@ class Node(object):
     def __eq__(self, other):
         return self.id == other.id
 
-
-def graph_to_networkx(graph):
-    import networkx as nx
-    G = nx.Graph()
-    G.add_nodes_from(graph.get_nodes())
-    G.add_edges_from(graph.get_edges())
-    return G
