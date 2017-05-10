@@ -109,6 +109,25 @@ class AlgoScore():
         return "{}|{}".format(self.perc_saved_nodes, self.perc_saved_occupied_by_ff)
 
 
+class StopCondition(object):
+    def should_continue(self, i, es):
+        '''
+
+        :param i: next iteration number (the one we want to start)
+        :param es: current ExecutionState
+        :return: True if framework should continue, False otherwise
+        '''
+        pass
+
+
+class IterBoundSC(StopCondition):
+    def __init__(self, iter_no):
+        self.iter_no = iter_no
+
+    def should_continue(self, i, es):
+        return i < self.iter_no
+
+
 class AlgoIn():
     def __init__(self,
                  G,
@@ -117,14 +136,16 @@ class AlgoIn():
                  iter_no=DEFAULTS["algo_iter_no"],
                  ffs_per_step=DEFAULTS["ffs_per_step"],
                  csv_file=None,
+                 stop_condition=None
                  ):
         self.G = G
         self.init_nodes = init_nodes
-        self.iter_no = iter_no
         self.ffs_per_step = ffs_per_step
         self.csv_file = csv_file
         self.operators = operators
 
+        if stop_condition is None:
+            self.stop_condition = IterBoundSC(iter_no)
 
 class AlgoOut():
     def __init__(self, best_solution, best_solution_score):
@@ -199,7 +220,8 @@ def ga_framework(params):
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(['iter_no', 'max_saved', 'max_saved_ff', 'scores_sum'])
 
-    for i in xrange(params.iter_no):
+    i = 0
+    while params.stop_condition.should_continue(i, es):
         es.current_iteration = i
 
         # crossover
@@ -242,6 +264,7 @@ def ga_framework(params):
                 writer.writerow([i, max_saved, max_saved_ff, sum_scores])
 
         es.reset_per_iteration_state()
+        i += 1
 
     if params.csv_file:
         csvfile.close()
