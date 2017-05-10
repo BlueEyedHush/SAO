@@ -1,7 +1,5 @@
 import csv
 from logging import getLogger, INFO
-from sys import stdin
-
 from simulation import simulation
 from visualize import visualize_simulation
 
@@ -150,9 +148,7 @@ def _process_solution(params, solution, comment="", offer_vis=False):
 
     if offer_vis and algo_vis_last_logger.isEnabledFor(INFO):
         print _sol_string()
-        print "Show visualization? [y/N]: "
-        if stdin.readline().strip().startswith("y"):
-            visualize_simulation(G, transitions, solution)
+        visualize_simulation(G, transitions, solution)
     elif new_solution_logger.isEnabledFor(INFO):
         new_solution_logger.info(_sol_string())
 
