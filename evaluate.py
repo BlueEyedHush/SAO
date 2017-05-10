@@ -1,3 +1,4 @@
+import argparse
 import csv
 import os
 
@@ -68,27 +69,6 @@ def generate_configs(iters, ffs, graph_desc, input_file):
     return configs
 
 
-def calculate_results(configs):
-    configs_num = len(configs)
-    processed_config_num = 1
-    for cfg in configs:
-        csv_file = _build_cfg_filepath(cfg, type='csv')
-
-        print "[{}/{}] Calculating {}...".format(processed_config_num, configs_num, csv_file)
-        run_framework(
-            loggers='',
-            population_size=cfg['population_size'],
-            selection=cfg['selection'],
-            crossover=cfg['crossover'],
-            mutation=cfg['mutation'],
-            iters=cfg['iters'],
-            ffs=cfg['ffs'],
-            input_file=cfg['input_file'],
-            out_csv_file=csv_file)
-
-        processed_config_num += 1
-
-
 def generate_plot_profiles():
     population_sizes, selection_ops, crossover_ops, mutation_ops = get_possible_factors()
 
@@ -138,6 +118,27 @@ def generate_plot_profiles():
                 })
 
     return profiles
+
+
+def calculate_results(configs):
+    configs_num = len(configs)
+    processed_config_num = 1
+    for cfg in configs:
+        csv_file = _build_cfg_filepath(cfg, type='csv')
+
+        print "[{}/{}] Calculating {}...".format(processed_config_num, configs_num, csv_file)
+        run_framework(
+            loggers='',
+            population_size=cfg['population_size'],
+            selection=cfg['selection'],
+            crossover=cfg['crossover'],
+            mutation=cfg['mutation'],
+            iters=cfg['iters'],
+            ffs=cfg['ffs'],
+            input_file=cfg['input_file'],
+            out_csv_file=csv_file)
+
+        processed_config_num += 1
 
 
 def draw_plots(plot_profile, configs):
@@ -211,10 +212,30 @@ def draw_plots(plot_profile, configs):
 
 
 if __name__ == '__main__':
-    iters = 500
-    graph_desc = '80_035_2'
-    input_file = 'graphs/80_035_2.rgraph'
-    ffs = 3
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-i', '--iters',
+                        type=int,
+                        default=500,
+                        help='number of framework iterations')
+    parser.add_argument('-d', '--graph_desc',
+                        default='80_035_2',
+                        help='concise graph description used to tag result files')
+    parser.add_argument('-in', '--input_file',
+                        default='graphs/80_035_2.rgraph',
+                        help='path to file containing graph definition')
+    parser.add_argument('-f', '--ffs',
+                        type=int,
+                        default=3,
+                        help='number of firefighters assigned per step')
+
+    args = parser.parse_args()
+
+    iters = args.iters
+    graph_desc = args.graph_desc
+    input_file = args.input_file
+    ffs = args.ffs
     configs = generate_configs(iters, ffs, graph_desc, input_file)
     calculate_results(configs)
 
@@ -222,5 +243,3 @@ if __name__ == '__main__':
     for i, plot_profile in enumerate(plot_profiles):
         print "Drawing plot {} out of {}".format(i, len(plot_profiles))
         draw_plots(plot_profile, configs)
-
-    # TODO: why do I have 318 profiles and 315 configs?

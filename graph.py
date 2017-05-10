@@ -6,6 +6,7 @@ NodeState = Enum('NodeState', 'UNTOUCHED DEFENDED BURNING')
 
 logger = getLogger("graph_printing")
 
+
 class Graph(object):
     def __init__(self):
         self.nodes_number = 0
