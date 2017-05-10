@@ -1,4 +1,5 @@
 import argparse
+
 from frameworks import Operators, AlgoIn, ga_framework, DEFAULTS
 from generate import load_graph
 from graph import Graph

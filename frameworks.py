@@ -1,5 +1,6 @@
 import csv
 from logging import getLogger, INFO
+
 from simulation import simulation
 from visualize import visualize_simulation
 

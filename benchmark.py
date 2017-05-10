@@ -2,12 +2,14 @@
 
 import itertools
 from logging import getLogger
-from generate import load_graph
+
 from frameworks import AlgoIn, ga_framework
-from solvers import SimpleGeneticCrossover
+from generate import load_graph
 from logging_configs import configure_logging
+from solvers import SimpleGeneticCrossover
 
 bench_results_logger = getLogger("benchmark_results")
+
 
 def benchmark(operators, test_configurations, iterations=1, header=True):
     """
