@@ -1,7 +1,7 @@
+import collections
 import logging
 import logging.config
 from copy import deepcopy
-import collections
 
 _default = {
     'version': 1,

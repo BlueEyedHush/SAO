@@ -1,6 +1,3 @@
-from frameworks import Operators
-
-
 # ToDo
 # * population sorting not needed (maybe expose helper function)
 # * use AlgoScore in operators (provide function for decomposing population)

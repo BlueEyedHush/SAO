@@ -1,9 +1,12 @@
+from logging import getLogger
+
 import matplotlib.pyplot as plt
 import networkx as nx
-from logging import getLogger
+
 from graph import NodeState
 
 logger = getLogger("visualization")
+
 
 def on_key(event, args):
     if event.key == 'right':

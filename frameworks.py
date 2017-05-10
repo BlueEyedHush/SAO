@@ -1,4 +1,6 @@
+import csv
 from logging import getLogger, INFO
+
 from simulation import simulation
 from visualize import visualize_simulation
 
@@ -14,6 +16,7 @@ DEFAULTS = {
     'algo_iter_no': 3,
     'ffs_per_step': 1,
 }
+
 
 class Operators():
     '''
@@ -94,7 +97,6 @@ class Operators():
         return population
 
 
-
 class AlgoScore():
     def __init__(self, perc_saved_nodes, perc_saved_occupied_by_ff):
         self.perc_saved_nodes = perc_saved_nodes
@@ -114,12 +116,13 @@ class AlgoIn():
                  operators=Operators(),
                  iter_no=DEFAULTS["algo_iter_no"],
                  ffs_per_step=DEFAULTS["ffs_per_step"],
+                 csv_file=None,
                  ):
         self.G = G
         self.init_nodes = init_nodes
         self.iter_no = iter_no
         self.ffs_per_step = ffs_per_step
-
+        self.csv_file = csv_file
         self.operators = operators
 
 
@@ -152,6 +155,7 @@ def _process_solution(params, solution, comment="", offer_vis=False):
 
     return score
 
+
 class ExecutionState():
     '''
     Specimen - permutation of node ids
@@ -164,6 +168,7 @@ class ExecutionState():
         mutation_candidates: list(specimen)
         scored_mutated_specimens: list((specimen, AlgoScore))
     '''
+
     def __init__(self, params):
         self.params = params
 
@@ -188,6 +193,11 @@ def ga_framework(params):
         score = _process_solution(params, specimen, "initial population")
         es.population.append((specimen, score))
     es.population = _sort_by_score(es.population)
+
+    if params.csv_file:
+        csvfile = open(params.csv_file, 'wb')
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(['iter_no', 'max_saved', 'max_saved_ff', 'scores_sum'])
 
     for i in xrange(params.iter_no):
         es.current_iteration = i
@@ -222,14 +232,19 @@ def ga_framework(params):
             algo_populations_logger.info("Population after iteration {}: {}"
                                          .format(i, map(lambda (_, score): str(score), es.population)))
 
-        if algo_per_iter_stats_logger.isEnabledFor(INFO):
+        if algo_per_iter_stats_logger.isEnabledFor(INFO) or params.csv_file:
             _, max_score = es.population[0]
             max_saved = max_score.perc_saved_nodes
             max_saved_ff = max_score.perc_saved_occupied_by_ff
             sum_scores = sum(map(lambda (_, score): score.perc_saved_nodes, es.population))
             algo_per_iter_stats_logger.info(per_iter_stats_format.format(i, max_saved, max_saved_ff, sum_scores))
+            if params.csv_file:
+                writer.writerow([i, max_saved, max_saved_ff, sum_scores])
 
         es.reset_per_iteration_state()
+
+    if params.csv_file:
+        csvfile.close()
 
     best_solution, score = es.population[0]
     # solely to give chance to visualize
