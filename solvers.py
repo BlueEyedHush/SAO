@@ -27,7 +27,7 @@ class ConfigurableSimpleSolver(object, Operators):
 
 
 def run_framework(loggers, population_size, selection, crossover, mutation, iters, ffs, graph_props=None,
-                  input_file=None, out_csv_file=None):
+                  input_file=None):
     configure_logging(loggers)
 
     if input_file:
@@ -44,13 +44,13 @@ def run_framework(loggers, population_size, selection, crossover, mutation, iter
         crossover_op=CROSSOVER[crossover],
         mutation_op=MUTATION[mutation],
     )
-    ga_framework(AlgoIn(g,
-                        [int(v.id) for v in g.get_starting_nodes()],
-                        operators=operators,
-                        iter_no=iters,
-                        ffs_per_step=ffs,
-                        csv_file=out_csv_file
-                        ))
+    return ga_framework(AlgoIn(g,
+                               [int(v.id) for v in g.get_starting_nodes()],
+                               operators=operators,
+                               iter_no=iters,
+                               ffs_per_step=ffs,
+                               gather_iteration_stats=True,
+                               ))
 
 
 if __name__ == "__main__":

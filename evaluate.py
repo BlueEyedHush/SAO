@@ -1,10 +1,15 @@
 import argparse
 import csv
 import os
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 
 from solvers import run_framework
+
+
+def avg(values):
+    return sum(values) / float(len(values))
 
 
 def _build_cfg_filepath(config, type='csv', plot_category=None):
@@ -40,7 +45,8 @@ def get_possible_factors():
     population_sizes = [10, 20, 50]
     selection_ops = ['tournament', 'roulette', 'rank']
     crossover_ops = ['cycle', 'injection', 'multi_injection', 'pmx', 'single_pmx']
-    mutation_ops = ['adjacent_swap', 'insertion', 'inversion', 'slide', 'random_swap', 'scramble', 'single_swap']
+    # 'adjecent_swap' mutation does not perform very well in general, so it is skipped
+    mutation_ops = ['insertion', 'inversion', 'slide', 'random_swap', 'scramble', 'single_swap']
 
     return population_sizes, selection_ops, crossover_ops, mutation_ops
 
@@ -120,23 +126,37 @@ def generate_plot_profiles():
     return profiles
 
 
-def calculate_results(configs):
+def calculate_results(configs, iterations=10):
     configs_num = len(configs)
     processed_config_num = 1
     for cfg in configs:
         csv_file = _build_cfg_filepath(cfg, type='csv')
 
-        print "[{}/{}] Calculating {}...".format(processed_config_num, configs_num, csv_file)
-        run_framework(
-            loggers='',
-            population_size=cfg['population_size'],
-            selection=cfg['selection'],
-            crossover=cfg['crossover'],
-            mutation=cfg['mutation'],
-            iters=cfg['iters'],
-            ffs=cfg['ffs'],
-            input_file=cfg['input_file'],
-            out_csv_file=csv_file)
+        results = dict()
+        for iteration in xrange(iterations):
+            print "[{}/{}][Iteration {}/{}] Calculating {}...".format(processed_config_num, configs_num, iteration + 1,
+                                                                      iterations,
+                                                                      csv_file)
+            results[iteration] = run_framework(
+                loggers='',
+                population_size=cfg['population_size'],
+                selection=cfg['selection'],
+                crossover=cfg['crossover'],
+                mutation=cfg['mutation'],
+                iters=cfg['iters'],
+                ffs=cfg['ffs'],
+                input_file=cfg['input_file'],
+            )
+
+        iteration_results = defaultdict(list)
+        for iteration in results:
+            for i in results[iteration].iteration_results:
+                iteration_results[i].append(results[iteration].iteration_results[i])
+
+        with open(csv_file, 'wb') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            for i in iteration_results:
+                writer.writerow(iteration_results[i])
 
         processed_config_num += 1
 
@@ -168,16 +188,18 @@ def draw_plots(plot_profile, configs):
     for cfg in matched_results:
 
         plot_label = cfg[profiled_category]
-        x = []
-        y = []
+        x = list()
+        y = list()
 
         csv_file = _build_cfg_filepath(cfg, type='csv')
 
         with open(csv_file, 'rb') as csvfile:
-            plots = csv.DictReader(csvfile, delimiter=',')
+            plots = csv.reader(csvfile, delimiter=',')
+            rows_num = 0
             for row in plots:
-                x.append(int(row['iter_no']))
-                y.append(float(row['max_saved']))
+                rows_num += 1
+                y.append(avg([float(d) for d in row]))
+            x = range(1, rows_num + 1)
 
         xdata[plot_label] = x
         ydata[plot_label] = y
@@ -212,15 +234,18 @@ def draw_plots(plot_profile, configs):
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-i', '--iters',
+    parser.add_argument('-gi', '--giters',
                         type=int,
-                        default=500,
-                        help='number of framework iterations')
+                        default=2000,
+                        help='number of iterations performed inside genetic framework')
+    parser.add_argument('-fi', '--fiters',
+                        type=int,
+                        default=10,
+                        help='number of times to invoke genetic framework')
     parser.add_argument('-d', '--graph_desc',
-                        default='80_035_2',
+                        default='80_035_2_agr',
                         help='concise graph description used to tag result files')
     parser.add_argument('-in', '--input_file',
                         default='graphs/80_035_2.rgraph',
@@ -232,12 +257,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    iters = args.iters
+    fiters = args.fiters
+    giters = args.giters
     graph_desc = args.graph_desc
     input_file = args.input_file
     ffs = args.ffs
-    configs = generate_configs(iters, ffs, graph_desc, input_file)
-    calculate_results(configs)
+    configs = generate_configs(giters, ffs, graph_desc, input_file)
+
+    calculate_results(configs, iterations=fiters)
 
     plot_profiles = generate_plot_profiles()
     for i, plot_profile in enumerate(plot_profiles):
