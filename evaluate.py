@@ -268,5 +268,5 @@ if __name__ == '__main__':
 
     plot_profiles = generate_plot_profiles()
     for i, plot_profile in enumerate(plot_profiles):
-        print "Drawing plot {} out of {}".format(i, len(plot_profiles))
+        print "Drawing plot {} out of {}".format(i+1, len(plot_profiles))
         draw_plots(plot_profile, configs)
