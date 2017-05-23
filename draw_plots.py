@@ -128,20 +128,16 @@ def draw_plots(configs, plot_builder, groupped_by, csv_dir, plot_png_out, add_co
         fig, title = plot_builder(data_and_configs, groupped_by, (y_min, y_max), add_conf)
 
         fig.savefig(plot_path(title, plot_png_out))
+        plt.close(fig)
 
 
-if __name__ == '__main__':
+def compare_all():
     cd = "results/80_035_2/csv (copy)/"
     po = "results/80_035_2/plots/"
-    gb = "mutation"
 
-    configs = generate_configs(
-        dict(population_size=[10],
-             selection=["rank", "roulette"],
-             crossover=["pmx"],
-             mutation=['random_swap', 'scramble', 'single_swap']),
-        [],
-        group_by=gb)
+    for gb in ["mutation", "population_size", "crossover", "selection"]:
+        configs = generate_configs({}, group_by=gb)
+        draw_plots(configs, line_plot_builder, groupped_by=gb, csv_dir=cd, plot_png_out=po + "l_{}".format(gb))
 
-    draw_plots(configs, line_plot_builder, groupped_by=gb, csv_dir=cd, plot_png_out=po + "l")
-    draw_plots(configs, box_plot_builder, groupped_by=gb, csv_dir=cd, plot_png_out=po + "bw")
+if __name__ == '__main__':
+    compare_all()
