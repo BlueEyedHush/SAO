@@ -55,12 +55,13 @@ class Graph(object):
         new_instance = cls()
         with open(input_file, 'r') as f:
             new_instance.nodes_number, _ = map(int, f.readline().split())
-            new_instance.starting_nodes = [Node(int(s)) for s in f.readline().split()]
+            starting_nodes_ids = [int(s) for s in f.readline().split()]
             for node_id in xrange(new_instance.nodes_number):
                 new_instance.nodes[node_id] = Node(node_id)
             for line in f:
                 v1, v2 = map(int, line.split())
                 new_instance.nodes[v1].add_neighbor(new_instance.nodes[v2])
+            new_instance.starting_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
         return new_instance
 
     def print_graph(self):
@@ -95,3 +96,5 @@ class Node(object):
     def __eq__(self, other):
         return self.id == other.id
 
+    def __str__(self):
+        return "Node({})".format(self.id)
