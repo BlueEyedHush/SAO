@@ -1,8 +1,8 @@
-import csv
 from logging import getLogger, INFO
 
 from simulation import simulation
 from visualize import visualize_simulation
+from heapq import nlargest
 
 algo_vis_last_logger = getLogger("algo_vis_last")
 new_solution_logger = getLogger("new_solution")
@@ -11,11 +11,33 @@ algo_per_iter_stats_logger = getLogger("per_iter_stats")
 per_iter_stats_format = "{:>10} {:>10} {:>12} {:>10}"
 
 SHOW_SCORE_EVERY = 1
+SORT_POPULATION = False
 
 DEFAULTS = {
     'algo_iter_no': 3,
     'ffs_per_step': 1,
 }
+
+
+def strip_score(list):
+    return map(lambda (specimen, score): specimen, list)
+
+
+def random_population(es, size):
+    all_node_ids = es.params.G.get_nodes().keys()
+    population = []
+    for i in xrange(size):
+        population.append(all_node_ids)
+    return population
+
+
+# sort list by scores desc
+def sort_by_score(solutions):
+    return sorted(solutions, key=lambda (sol, score): score.to_fitness(), reverse=True)
+
+
+def find_n_best_solutions(population, n=1):
+    return nlargest(n, population, key=lambda (specimen, score): score.to_fitness())
 
 
 class Operators():
@@ -47,12 +69,15 @@ class Operators():
     * number of population remaiming after succession
     However, each mutation must product single specimen
 
-    Population state:
+    Population state (if SORT POPULATION == True):
     * children from crossover & mutation are appended to population at the end of each iteration (before succession)
     * succession can expect population to be in sorted state
     * lists with children (both from crossover and mutation) are not sorted by score
     * main population is in sorted state at the beginning of each iteration and since it's not modified,
       it remains so for the rest of iteration
+
+    Population state (if SORT POPULATION == False):
+    * nothing is sorted, you have to sort it yourself if you need it
 
     Children are scored as soon as possible. This mean that they are available (with score) for subsequent invocatins
     of crossover & mutation.
@@ -64,11 +89,11 @@ class Operators():
 
     def population_initialization(self, es):
         # print "default population initializer called"
-        return self._random_population(es, 2)
+        return random_population(es, 2)
 
     def crossover_selection(self, es):
         # print "default selector called"
-        return [self._strip_score(es.population[0:2])]
+        return [strip_score(es.population[0:2])]
 
     def crossover(self, es, parents):
         # print "default crossover called"
@@ -85,16 +110,6 @@ class Operators():
     def succession(self, es):
         # print "default succession op"
         return es.population
-
-    def _strip_score(self, list):
-        return map(lambda (specimen, score): specimen, list)
-
-    def _random_population(self, es, size):
-        all_node_ids = es.params.G.get_nodes().keys()
-        population = []
-        for i in xrange(size):
-            population.append(all_node_ids)
-        return population
 
 
 class AlgoScore():
@@ -135,27 +150,24 @@ class AlgoIn():
                  operators=Operators(),
                  iter_no=DEFAULTS["algo_iter_no"],
                  ffs_per_step=DEFAULTS["ffs_per_step"],
-                 csv_file=None,
+                 gather_iteration_stats=False,
                  stop_condition=None
                  ):
         self.G = G
         self.init_nodes = init_nodes
         self.ffs_per_step = ffs_per_step
-        self.csv_file = csv_file
+        self.gather_iteration_stats = gather_iteration_stats,
         self.operators = operators
 
         if stop_condition is None:
             self.stop_condition = IterBoundSC(iter_no)
 
+
 class AlgoOut():
-    def __init__(self, best_solution, best_solution_score):
+    def __init__(self, best_solution, best_solution_score, iteration_results):
         self.best_solution = best_solution
         self.best_solution_score = best_solution_score
-
-
-# sort list by scores desc
-def _sort_by_score(solutions):
-    return sorted(solutions, key=lambda (sol, score): score.perc_saved_nodes, reverse=True)
+        self.iteration_results = iteration_results
 
 
 def _process_solution(params, solution, comment="", offer_vis=False):
@@ -213,14 +225,11 @@ def ga_framework(params):
     for specimen in params.operators.population_initialization(es):
         score = _process_solution(params, specimen, "initial population")
         es.population.append((specimen, score))
-    es.population = _sort_by_score(es.population)
-
-    if params.csv_file:
-        csvfile = open(params.csv_file, 'wb')
-        writer = csv.writer(csvfile, delimiter=',')
-        writer.writerow(['iter_no', 'max_saved', 'max_saved_ff', 'scores_sum'])
+    if SORT_POPULATION:
+        es.population = sort_by_score(es.population)
 
     i = 0
+    iteration_results = dict()
     while params.stop_condition.should_continue(i, es):
         es.current_iteration = i
 
@@ -246,30 +255,29 @@ def ga_framework(params):
         es.population.extend(es.scored_mutated_specimens)
 
         # sucession
-        es.population = _sort_by_score(es.population)
-        new_population = params.operators.succession(es)
-        es.population = _sort_by_score(new_population)
+        if SORT_POPULATION:
+            es.population = sort_by_score(es.population)
+        es.population = params.operators.succession(es)
+        if SORT_POPULATION:
+            es.population = sort_by_score(new_population)
 
         if i % SHOW_SCORE_EVERY == 0:
             algo_populations_logger.info("Population after iteration {}: {}"
                                          .format(i, map(lambda (_, score): str(score), es.population)))
 
-        if algo_per_iter_stats_logger.isEnabledFor(INFO) or params.csv_file:
+        if algo_per_iter_stats_logger.isEnabledFor(INFO) or params.gather_iteration_stats:
             _, max_score = es.population[0]
             max_saved = max_score.perc_saved_nodes
             max_saved_ff = max_score.perc_saved_occupied_by_ff
             sum_scores = sum(map(lambda (_, score): score.perc_saved_nodes, es.population))
             algo_per_iter_stats_logger.info(per_iter_stats_format.format(i, max_saved, max_saved_ff, sum_scores))
-            if params.csv_file:
-                writer.writerow([i, max_saved, max_saved_ff, sum_scores])
+            iteration_results[i] = max_saved
 
         es.reset_per_iteration_state()
         i += 1
 
-    if params.csv_file:
-        csvfile.close()
+    best_solution, score = find_n_best_solutions(es.population, 1)[0]
 
-    best_solution, score = es.population[0]
     # solely to give chance to visualize
     _process_solution(params, best_solution, comment="Best solution", offer_vis=True)
-    return AlgoOut(best_solution, score)
+    return AlgoOut(best_solution, score, iteration_results)

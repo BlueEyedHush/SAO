@@ -1,7 +1,10 @@
+from features import VISUALIZATION_PLOTTING
+
 from logging import getLogger
 
-import matplotlib.pyplot as plt
-import networkx as nx
+if VISUALIZATION_PLOTTING:
+    import matplotlib.pyplot as plt
+    import networkx as nx
 
 from graph import NodeState
 

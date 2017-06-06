@@ -1,133 +1,115 @@
+
 import argparse
 import csv
 import os
-
-import matplotlib.pyplot as plt
+import time
+from collections import defaultdict
+import multiprocessing
 
 from solvers import run_framework
 
+PROCESS_NUM = multiprocessing.cpu_count() - 1
+STATUS_UPDATE_EVERY = 5  # in seconds
 
-def _build_cfg_filepath(config, type='csv', plot_category=None):
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    base_dir = os.path.join(script_dir, 'results', config['graph_desc'])
 
-    filebase = "{}_{}_{}_{}_{}".format(
+def graph_path_to_filename(path):
+    filename = os.path.basename(path)
+    last_dot_pos = filename.rfind(".")
+    fname_without_extension = filename[0:last_dot_pos]
+    return fname_without_extension
+
+
+def build_cfg_filepath(config, cfg_dir):
+    graph_fname = graph_path_to_filename(config['input_file'])
+
+    filename = "{}_{}_{}_{}_{}.csv".format(
         config['population_size'],
         config['selection'],
         config['crossover'],
         config['mutation'],
-        config['graph_desc']
+        graph_fname,
     )
 
-    if type == 'csv':
-        filename = "{}.csv".format(filebase)
-        dir_path = os.path.join(base_dir, 'csv')
-    elif type == 'plot':
-        filename = "{}.png".format(filebase)
-        dir_path = os.path.join(base_dir, 'plots', plot_category)
-    else:
-        raise ValueError('Invalid filepath type')
-
-    if not os.path.exists(dir_path):
-        print "{} does not exists. Creating one...".format(dir_path)
-        os.makedirs(dir_path)
-
-    full_path = os.path.join(dir_path, filename)
+    full_path = os.path.join(cfg_dir, filename)
     return full_path
 
 
-def get_possible_factors():
-    population_sizes = [10, 20, 50]
-    selection_ops = ['tournament', 'roulette', 'rank']
-    crossover_ops = ['cycle', 'injection', 'multi_injection', 'pmx', 'single_pmx']
-    mutation_ops = ['adjacent_swap', 'insertion', 'inversion', 'slide', 'random_swap', 'scramble', 'single_swap']
+DEFAULT_TEST_SPEC = dict(
+    population_size=[10, 20, 50],
+    selection=['tournament', 'roulette', 'rank'],
+    crossover=['cycle', 'injection', 'multi_injection', 'pmx', 'single_pmx'],
+    # 'adjecent_swap' mutation does not perform very well in general, so it is skipped
+    mutation=['insertion', 'inversion', 'slide', 'random_swap', 'scramble', 'single_swap'],
+    iters=[2000],
+    ffs=[3],
+    input_file=["graphs/80_035_2.rgraph"],
+)
 
-    return population_sizes, selection_ops, crossover_ops, mutation_ops
 
-
-def generate_configs(iters, ffs, graph_desc, input_file):
-    population_sizes, selection_ops, crossover_ops, mutation_ops = get_possible_factors()
-
+def generate_configs(user_spec=None, iteration_order=None, group_by=None):
     # generate all possible combinations of defined operators and population size
+    spec = DEFAULT_TEST_SPEC.copy()
+    if user_spec is not None:
+        spec.update(user_spec)
+
+    it_order = iteration_order if iteration_order is not None else []
+    # append missing ones to the end
+    for k in DEFAULT_TEST_SPEC.keys():
+        if k not in it_order:
+            it_order.append(k)
+
+    # move groupping feature to the end
+    if group_by is not None:
+        non_groupping_features = filter(lambda x: x != group_by, it_order)
+        final_it_oroder = reversed([group_by] + non_groupping_features)
+    else:
+        final_it_oroder = reversed(it_order)
+
     configs = list()
-    for ps in population_sizes:
-        for so in selection_ops:
-            for co in crossover_ops:
-                for mo in mutation_ops:
-                    config = {
-                        'population_size': ps,
-                        'selection': so,
-                        'crossover': co,
-                        'mutation': mo,
-                        'iters': iters,
-                        'ffs': ffs,
-                        'graph_desc': graph_desc,
-                        'input_file': input_file,
-                    }
-                    configs.append(config)
+    configs.append({})
+    for feature in final_it_oroder:
+        # we need to copy previous configuration for each value of our feature
+        feature_values = spec[feature]
+
+        def _duplicate_and_add(feature_value):
+            new_configs = []
+            for c in configs:
+                nc = dict(c)
+                nc[feature] = feature_value
+                new_configs.append(nc)
+            return new_configs
+
+        new_configs = map(_duplicate_and_add, feature_values)
+
+        if feature == group_by:
+            # last feature that'll be appended
+            # new_configs is list of configs, one list for each value
+            # but here we need something else - list for each of unique other features
+            configs = zip(*new_configs)
+        else:
+            configs = reduce(lambda l1, l2: l1 + l2, new_configs)
 
     return configs
 
 
-def generate_plot_profiles():
-    population_sizes, selection_ops, crossover_ops, mutation_ops = get_possible_factors()
-
-    profiles = list()
-    # profiles for population_size
-    for so in selection_ops:
-        for co in crossover_ops:
-            for mo in mutation_ops:
-                profiles.append({
-                    'population_size': None,
-                    'selection': so,
-                    'crossover': co,
-                    'mutation': mo,
-                })
-
-    # profiles for selection
-    for ps in population_sizes:
-        for co in crossover_ops:
-            for mo in mutation_ops:
-                profiles.append({
-                    'population_size': ps,
-                    'selection': None,
-                    'crossover': co,
-                    'mutation': mo,
-                })
-
-    # profiles for crossover
-    for ps in population_sizes:
-        for so in selection_ops:
-            for mo in mutation_ops:
-                profiles.append({
-                    'population_size': ps,
-                    'selection': so,
-                    'crossover': None,
-                    'mutation': mo,
-                })
-
-    # profiles for mutation
-    for ps in population_sizes:
-        for so in selection_ops:
-            for co in crossover_ops:
-                profiles.append({
-                    'population_size': ps,
-                    'selection': so,
-                    'crossover': co,
-                    'mutation': None,
-                })
-
-    return profiles
+# this must be global variable because it's going to be shared across multiple processes
+# if you pass it as an argument, it'll be pickled (=copied) and won't work corretly
+stats = None
 
 
-def calculate_results(configs):
-    configs_num = len(configs)
-    processed_config_num = 1
-    for cfg in configs:
-        csv_file = _build_cfg_filepath(cfg, type='csv')
+def init_stats_object():
+    global stats
+    stats = {}
+    stats["finished_iters"] = multiprocessing.Value("i", 0)
+    stats["finished_configs"] = multiprocessing.Value("i", 0)
 
-        print "[{}/{}] Calculating {}...".format(processed_config_num, configs_num, csv_file)
-        run_framework(
+
+def calculate_with_config(cfg, iterations, csv_dir):
+    csv_file = build_cfg_filepath(cfg, csv_dir)
+
+    results = dict()
+    for iteration in xrange(iterations):
+        results[iteration] = run_framework(
             loggers='',
             population_size=cfg['population_size'],
             selection=cfg['selection'],
@@ -136,110 +118,96 @@ def calculate_results(configs):
             iters=cfg['iters'],
             ffs=cfg['ffs'],
             input_file=cfg['input_file'],
-            out_csv_file=csv_file)
-
-        processed_config_num += 1
-
-
-def draw_plots(plot_profile, configs):
-    categories = list()
-    for plot_label in plot_profile:
-        if plot_profile[plot_label]:
-            categories.append(plot_label)
-    if len(categories) != 3:
-        raise ValueError('Invalid plot profile - exactly one category should be left empty')
-
-    profiled_category = [cat for cat in plot_profile.keys() if cat not in categories][0]
-
-    # find only results matching criteria in plot_profile
-    matched_results = list()
-    for cfg in configs:
-        matching = True
-        for plot_label in categories:
-            if cfg[plot_label] != plot_profile[plot_label]:
-                matching = False
-                break
-        if matching:
-            matched_results.append(cfg)
-
-    xdata = dict()
-    ydata = dict()
-    plt.clf()
-    for cfg in matched_results:
-
-        plot_label = cfg[profiled_category]
-        x = []
-        y = []
-
-        csv_file = _build_cfg_filepath(cfg, type='csv')
-
-        with open(csv_file, 'rb') as csvfile:
-            plots = csv.DictReader(csvfile, delimiter=',')
-            for row in plots:
-                x.append(int(row['iter_no']))
-                y.append(float(row['max_saved']))
-
-        xdata[plot_label] = x
-        ydata[plot_label] = y
-
-    if matched_results:
-        for plot_label in xdata:
-            plt.plot(xdata[plot_label], ydata[plot_label], label=plot_label)
-
-        title = "{};{};{};{};{}".format(
-            plot_profile['population_size'],
-            plot_profile['selection'],
-            plot_profile['crossover'],
-            plot_profile['mutation'],
-            matched_results[0]['graph_desc'],
         )
-        plt.xlabel('Iteration')
-        plt.ylabel('Saved %')
-        plt.title(title)
-        plt.legend()
 
-        plot_path = _build_cfg_filepath(
-            {
-                'population_size': plot_profile['population_size'],
-                'selection': plot_profile['selection'],
-                'crossover': plot_profile['crossover'],
-                'mutation': plot_profile['mutation'],
-                'graph_desc': matched_results[0]['graph_desc']
-            },
-            type='plot',
-            plot_category=profiled_category)
-        plt.savefig(plot_path)
+        with stats["finished_iters"].get_lock():
+            stats["finished_iters"].value += 1
+
+    iteration_results = defaultdict(list)
+    for iteration in results:
+        for i in results[iteration].iteration_results:
+            iteration_results[i].append(results[iteration].iteration_results[i])
+
+    with open(csv_file, 'wb') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        for i in iteration_results:
+            writer.writerow(iteration_results[i])
+
+    with stats["finished_configs"].get_lock():
+        stats["finished_configs"].value += 1
+
+    return True
+
+
+class PerProcessData():
+    def __init__(self, config, iterations, csv_dir):
+        self.config = config
+        self.iterations = iterations
+        self.csv_dir = csv_dir
+
+def wrapper(ppd):
+    calculate_with_config(ppd.config, ppd.iterations, ppd.csv_dir)
+
+
+def time_prognose(start_timestamp, iters_count, current_iters):
+    if current_iters <= 0:
+        return "<not yet calculated>"
+    else:
+        elapsed_seconds = time.time() - start_timestamp
+        prognosed_duration = elapsed_seconds * iters_count / current_iters
+        prognosed_seconds_left = prognosed_duration - elapsed_seconds
+
+        m, s = divmod(prognosed_seconds_left, 60)
+        h, m = divmod(m, 60)
+        return "%d:%02d:%02d" % (h, m, s)
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-i', '--iters',
+    parser.add_argument('-fi', '--fiters',
                         type=int,
-                        default=500,
-                        help='number of framework iterations')
-    parser.add_argument('-d', '--graph_desc',
-                        default='80_035_2',
-                        help='concise graph description used to tag result files')
-    parser.add_argument('-in', '--input_file',
-                        default='graphs/80_035_2.rgraph',
-                        help='path to file containing graph definition')
-    parser.add_argument('-f', '--ffs',
-                        type=int,
-                        default=3,
-                        help='number of firefighters assigned per step')
+                        default=10,
+                        help='number of times to invoke genetic framework')
+
+    parser.add_argument('-o', '--out',
+                        default="results/default_csv",
+                        help='directory where generated CSV files are going to be stored')
 
     args = parser.parse_args()
 
-    iters = args.iters
-    graph_desc = args.graph_desc
-    input_file = args.input_file
-    ffs = args.ffs
-    configs = generate_configs(iters, ffs, graph_desc, input_file)
-    calculate_results(configs)
+    if not os.path.exists(args.out):
+        print "{} does not exists, creating.".format(args.out)
+        os.makedirs(args.out)
 
-    plot_profiles = generate_plot_profiles()
-    for i, plot_profile in enumerate(plot_profiles):
-        print "Drawing plot {} out of {}".format(i, len(plot_profiles))
-        draw_plots(plot_profile, configs)
+    configs = generate_configs()
+    init_stats_object()
+    configs_count = len(configs)
+    iters_count = configs_count * args.fiters
+    per_config_data = map(lambda c: PerProcessData(config=c, iterations=args.fiters, csv_dir=args.out), configs)
+
+    chunk_size = len(configs) / PROCESS_NUM
+    print("Using {} processes, chunk size is {}".format(PROCESS_NUM, chunk_size))
+
+    start_timestamp = time.time()
+    p = multiprocessing.Pool(processes=PROCESS_NUM)
+    ar = p.map_async(wrapper, per_config_data, chunk_size)
+
+    done = False
+    while not done:
+        try:
+            ar.get(STATUS_UPDATE_EVERY)
+            done = True
+        except multiprocessing.TimeoutError:
+            # print stats
+            with stats["finished_configs"].get_lock():
+                fc = stats["finished_configs"].value
+            with stats["finished_iters"].get_lock():
+                fi = stats["finished_iters"].value
+
+            curr_timestamp = time.time()
+            ptl = time_prognose(start_timestamp, iters_count, fi)
+            print("Finished configs: {}/{}, finished iterations: {}/{}. Prognosed time left: {}"
+                  .format(fc, configs_count, fi, iters_count, ptl))
+
+    print("Finished calculations!")
