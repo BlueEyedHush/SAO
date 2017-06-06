@@ -1,6 +1,7 @@
 import selection as sel
 import crossover as cs
 import mutation as mut
+import succession as suc
 
 SELECTION = {
     "tournament": sel.tournament_selection,
@@ -19,9 +20,15 @@ CROSSOVER = {
 MUTATION = {
     "adjacent_swap": mut.adjacent_swap_mutation,
     "insertion": mut.insertion_mutation,
-    "inversion": mut.insertion_mutation,
+    "inversion": mut.inversion_mutation,
     "slide": mut.random_slide_mutation,
     "random_swap": mut.random_swap_mutation,
     "scramble": mut.scramble_mutation,
     "single_swap": mut.single_swap_mutation,
+}
+
+SUCCESSION = {
+    "best": suc.best,
+    "rank": suc.rank_succession,
+    "best_then_random": suc.best_then_uniform_succession,
 }

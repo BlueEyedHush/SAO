@@ -259,7 +259,7 @@ def ga_framework(params):
             es.population = sort_by_score(es.population)
         es.population = params.operators.succession(es)
         if SORT_POPULATION:
-            es.population = sort_by_score(new_population)
+            es.population = sort_by_score(es.population)
 
         if i % SHOW_SCORE_EVERY == 0:
             algo_populations_logger.info("Population after iteration {}: {}"

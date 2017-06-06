@@ -1,16 +1,8 @@
 import random
 
 from heapq import nlargest
+from utils import _tuple_to_chromosome, _tuple_to_score, sort_extract
 
-
-def _tuple_to_score(t):
-    ch, algo_score = t
-    return algo_score.to_fitness()
-
-
-def _tuple_to_chromosome(t):
-    ch, algoscore = t
-    return ch
 
 def _roulette_select(weighted_population, k):
     """ Returns k individual with probability proportional to assigned weights """
@@ -75,7 +67,7 @@ def rank_selection(population, k, environment):
     :return:
     """
 
-    sorted_by_fitness = map(_tuple_to_chromosome, sorted(population, key=_tuple_to_score))
+    sorted_by_fitness = sort_extract(population)
     ranks = xrange(1, len(population) + 1)
 
     population_with_rank = zip(sorted_by_fitness, ranks)

@@ -5,15 +5,15 @@ if VISUALIZATION_PLOTTING:
 
 import os.path
 import numpy as np
+import bench_presets
 from evaluate import build_cfg_filepath, generate_configs, graph_path_to_filename
-
 
 def avg(values):
     return sum(values) / float(len(values))
 
 
 def plot_title(config, groupped_by):
-    order = ["population_size", "selection", "crossover", "mutation", "input_file"]
+    order = ["population_size", "selection", "crossover", "mutation", "succession", "input_file", "iters", "ffs"]
     title = ""
     for i in order:
         if i != "input_file":
@@ -40,7 +40,7 @@ def box_plot_builder(data_and_configs, groupped_by, y_limits, add_conf={}):
     iter_gap = add_conf.get("iter_gap", 100)
     y_min, y_max = y_limits
 
-    plt_height = len(configs) * 8
+    plt_height = len(data_and_configs) * 8
     fig = plt.figure(figsize=(7, plt_height))
     fig.set_dpi(120)
 
@@ -118,6 +118,9 @@ def draw_plots(configs, plot_builder, groupped_by, csv_dir, plot_png_out, add_co
             if new_min < y_min:
                 y_min = new_min
 
+    y_min -= 0.02
+    y_max += 0.02
+
     for i, config_set in enumerate(configs):
         print "Drawing plot {} out of {}".format(i + 1, len(configs))
 
@@ -131,13 +134,5 @@ def draw_plots(configs, plot_builder, groupped_by, csv_dir, plot_png_out, add_co
         plt.close(fig)
 
 
-def compare_all():
-    cd = "results/80_035_2/csv (copy)/"
-    po = "results/80_035_2/plots/"
-
-    for gb in ["mutation", "population_size", "crossover", "selection"]:
-        configs = generate_configs({}, group_by=gb)
-        draw_plots(configs, line_plot_builder, groupped_by=gb, csv_dir=cd, plot_png_out=po + "l_{}".format(gb))
-
 if __name__ == '__main__':
-    compare_all()
+    bench_presets.plot_compare_succession()

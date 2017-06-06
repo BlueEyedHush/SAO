@@ -1,11 +1,13 @@
 
-import argparse
 import csv
 import os
 import time
+import sys
 from collections import defaultdict
 import multiprocessing
+import traceback
 
+import bench_presets
 from solvers import run_framework
 
 PROCESS_NUM = multiprocessing.cpu_count() - 1
@@ -22,12 +24,15 @@ def graph_path_to_filename(path):
 def build_cfg_filepath(config, cfg_dir):
     graph_fname = graph_path_to_filename(config['input_file'])
 
-    filename = "{}_{}_{}_{}_{}.csv".format(
+    filename = "{}_{}_{}_{}_{}_{}_{}_{}.csv".format(
         config['population_size'],
         config['selection'],
         config['crossover'],
         config['mutation'],
+        config['succession'],
         graph_fname,
+        config['iters'],
+        config['ffs'],
     )
 
     full_path = os.path.join(cfg_dir, filename)
@@ -40,6 +45,7 @@ DEFAULT_TEST_SPEC = dict(
     crossover=['cycle', 'injection', 'multi_injection', 'pmx', 'single_pmx'],
     # 'adjecent_swap' mutation does not perform very well in general, so it is skipped
     mutation=['insertion', 'inversion', 'slide', 'random_swap', 'scramble', 'single_swap'],
+    succession=['rank', 'best_then_random', 'best'],
     iters=[2000],
     ffs=[3],
     input_file=["graphs/80_035_2.rgraph"],
@@ -115,6 +121,7 @@ def calculate_with_config(cfg, iterations, csv_dir):
             selection=cfg['selection'],
             crossover=cfg['crossover'],
             mutation=cfg['mutation'],
+            succession=cfg['succession'],
             iters=cfg['iters'],
             ffs=cfg['ffs'],
             input_file=cfg['input_file'],
@@ -146,7 +153,12 @@ class PerProcessData():
         self.csv_dir = csv_dir
 
 def wrapper(ppd):
-    calculate_with_config(ppd.config, ppd.iterations, ppd.csv_dir)
+    try:
+        calculate_with_config(ppd.config, ppd.iterations, ppd.csv_dir)
+    except Exception:
+        print "Exception occured for config: {}".format(ppd.config)
+        traceback.print_exc()
+        raise
 
 
 def time_prognose(start_timestamp, iters_count, current_iters):
@@ -162,35 +174,22 @@ def time_prognose(start_timestamp, iters_count, current_iters):
         return "%d:%02d:%02d" % (h, m, s)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+def main(configs, fiters, out):
+    if not os.path.exists(out):
+        print "{} does not exists, creating.".format(out)
+        os.makedirs(out)
 
-    parser.add_argument('-fi', '--fiters',
-                        type=int,
-                        default=10,
-                        help='number of times to invoke genetic framework')
-
-    parser.add_argument('-o', '--out',
-                        default="results/default_csv",
-                        help='directory where generated CSV files are going to be stored')
-
-    args = parser.parse_args()
-
-    if not os.path.exists(args.out):
-        print "{} does not exists, creating.".format(args.out)
-        os.makedirs(args.out)
-
-    configs = generate_configs()
     init_stats_object()
     configs_count = len(configs)
-    iters_count = configs_count * args.fiters
-    per_config_data = map(lambda c: PerProcessData(config=c, iterations=args.fiters, csv_dir=args.out), configs)
+    iters_count = configs_count * fiters
+    per_config_data = map(lambda c: PerProcessData(config=c, iterations=fiters, csv_dir=out), configs)
 
-    chunk_size = len(configs) / PROCESS_NUM
+    chunk_size = max(len(configs) / PROCESS_NUM, 1)
     print("Using {} processes, chunk size is {}".format(PROCESS_NUM, chunk_size))
+    sys.stdout.flush()
 
     start_timestamp = time.time()
-    p = multiprocessing.Pool(processes=PROCESS_NUM)
+    p = multiprocessing.Pool(processes=max(len(configs), PROCESS_NUM))
     ar = p.map_async(wrapper, per_config_data, chunk_size)
 
     done = False
@@ -205,9 +204,14 @@ if __name__ == '__main__':
             with stats["finished_iters"].get_lock():
                 fi = stats["finished_iters"].value
 
-            curr_timestamp = time.time()
             ptl = time_prognose(start_timestamp, iters_count, fi)
             print("Finished configs: {}/{}, finished iterations: {}/{}. Prognosed time left: {}"
                   .format(fc, configs_count, fi, iters_count, ptl))
+            sys.stdout.flush()
 
     print("Finished calculations!")
+
+
+if __name__ == '__main__':
+    configs, out, fiters = bench_presets.eval_compare_succession()
+    main(configs, fiters, out)

@@ -31,3 +31,10 @@ def wrap_selection(operator, parent_sets_count, specimen_count):
         return parent_sets
 
     return _wrapper
+
+
+def wrap_succession(operator, population_size):
+    def _wrapper(es):
+        return operator(es.population, population_size, (es.params.G, es.params.init_nodes, es.params.ffs_per_step))
+
+    return _wrapper
