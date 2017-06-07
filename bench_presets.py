@@ -64,6 +64,21 @@ def v320_plot():
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
 
+def get_v320_spec_compare_all():
+    return {
+        "population_size": [100],
+        "iters": [10000],
+        "input_file": ["graphs/320_0.009_1.rgraph"],
+    }
+
+
+def v320_eval_compare_all():
+    prefix = "results/320_009_1_compare_all/"
+    tries = 1
+    spec = get_v320_spec_compare_all()
+
+    ev.evaluate(ev.generate_configs(spec), prefix, tries)
+
+
 if __name__ == "__main__":
-    v320_eval()
-    v320_plot()
+    v320_eval_compare_all()
