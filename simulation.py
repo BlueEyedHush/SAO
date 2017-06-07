@@ -30,7 +30,7 @@ def set_initial_nodes_on_fire(graph, init_nodes, transitions):
 def spreading_finished(graph):
     burning_nodes = graph.get_burning_nodes()
     for burning_node in burning_nodes:
-        for neighbor in burning_node.neighbors:
+        for neighbor in burning_node.get_neighbors():
             if neighbor.state == NodeState.UNTOUCHED:
                 return False
     return True
@@ -57,7 +57,7 @@ def spread_fire(graph, transitions):
 
     burning_nodes = graph.get_burning_nodes()
     for burning_node in burning_nodes:
-        for neighbor in burning_node.neighbors:
+        for neighbor in burning_node.get_neighbors():
             if neighbor.state == NodeState.UNTOUCHED:
                 neighbor.state = NodeState.BURNING
                 transitions[step].append((neighbor.id, NodeState.BURNING))
