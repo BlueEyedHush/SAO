@@ -10,6 +10,7 @@ import traceback
 from solvers import run_framework
 from visualize import save_solution
 
+MULTIPROCESSING_ENALBED = False
 PROCESS_NUM = multiprocessing.cpu_count() - 1
 STATUS_UPDATE_EVERY = 5  # in seconds
 
@@ -146,8 +147,9 @@ def calculate_with_config(cfg, iterations, prefix):
             input_file=cfg['input_file'],
         )
 
-        with stats["finished_iters"].get_lock():
-            stats["finished_iters"].value += 1
+        if MULTIPROCESSING_ENALBED:
+            with stats["finished_iters"].get_lock():
+                stats["finished_iters"].value += 1
 
     iteration_results = defaultdict(list)
     for iteration in results:
@@ -173,9 +175,9 @@ def calculate_with_config(cfg, iterations, prefix):
 
     save_solution(best_solution, best_score_i, build_result_filepath(cfg, prefix))
 
-
-    with stats["finished_configs"].get_lock():
-        stats["finished_configs"].value += 1
+    if MULTIPROCESSING_ENALBED:
+        with stats["finished_configs"].get_lock():
+            stats["finished_configs"].value += 1
 
     return True
 
@@ -214,31 +216,40 @@ def evaluate(configs, prefix, fiters):
     init_stats_object()
     configs_count = len(configs)
     iters_count = configs_count * fiters
-    per_config_data = map(lambda c: PerProcessData(config=c, iterations=fiters, prefix=prefix), configs)
 
-    chunk_size = max(len(configs) / PROCESS_NUM, 1)
-    print("Using {} processes, chunk size is {}".format(PROCESS_NUM, chunk_size))
-    sys.stdout.flush()
+    if MULTIPROCESSING_ENALBED:
+        per_config_data = map(lambda c: PerProcessData(config=c, iterations=fiters, prefix=prefix), configs)
 
-    start_timestamp = time.time()
-    p = multiprocessing.Pool(processes=max(len(configs), PROCESS_NUM))
-    ar = p.map_async(wrapper, per_config_data, chunk_size)
+        chunk_size = max(len(configs) / PROCESS_NUM, 1)
+        print("Using {} processes, chunk size is {}".format(PROCESS_NUM, chunk_size))
+        sys.stdout.flush()
 
-    done = False
-    while not done:
-        try:
-            ar.get(STATUS_UPDATE_EVERY)
-            done = True
-        except multiprocessing.TimeoutError:
-            # print stats
-            with stats["finished_configs"].get_lock():
-                fc = stats["finished_configs"].value
-            with stats["finished_iters"].get_lock():
-                fi = stats["finished_iters"].value
+        start_timestamp = time.time()
+        p = multiprocessing.Pool(processes=max(len(configs), PROCESS_NUM))
+        ar = p.map_async(wrapper, per_config_data, chunk_size)
 
-            ptl = time_prognose(start_timestamp, iters_count, fi)
-            print("Finished configs: {}/{}, finished iterations: {}/{}. Prognosed time left: {}"
-                  .format(fc, configs_count, fi, iters_count, ptl))
-            sys.stdout.flush()
+        done = False
+        while not done:
+            try:
+                ar.get(STATUS_UPDATE_EVERY)
+                done = True
+            except multiprocessing.TimeoutError:
+                # print stats
+                with stats["finished_configs"].get_lock():
+                    fc = stats["finished_configs"].value
+                with stats["finished_iters"].get_lock():
+                    fi = stats["finished_iters"].value
 
-    print("Finished calculations!")
+                ptl = time_prognose(start_timestamp, iters_count, fi)
+                print("Finished configs: {}/{}, finished iterations: {}/{}. Prognosed time left: {}"
+                      .format(fc, configs_count, fi, iters_count, ptl))
+                sys.stdout.flush()
+
+        print("Finished calculations!")
+
+    else:
+        counter = 0
+        for cfg in configs:
+            calculate_with_config(cfg, fiters, prefix)
+            counter += 1
+            print("Processed {}/{} configs.".format(counter, configs_count))
