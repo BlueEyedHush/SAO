@@ -109,8 +109,37 @@ def wc_plot():
 
     configs = ev.generate_configs(spec, group_by=gb)
     dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
+    dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
+
+def get_v320_spec_no_cross():
+    return {
+        "population_size": [100],
+        "selection": ["roulette"],
+        "mutation": ["single_swap"],
+        "crossover": ["noop"],
+        "succession": ["best_then_random"],
+        "iters": [15000],
+        "input_file": ["graphs/320_0.009_1.rgraph"],
+    }
+
+
+def v320_no_cross_eval():
+    prefix = "results/320_009_1_no_cross/"
+    tries = 1
+    spec = get_v320_spec_no_cross()
+
+    ev.evaluate(ev.generate_configs(spec), prefix, tries)
+
+
+def v320_no_cross_plot():
+    prefix = "results/320_009_1_no_cross/"
+    spec = get_v320_spec_no_cross()
+    gb = "crossover"
+
+    configs = ev.generate_configs(spec, group_by=gb)
+    dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
+    dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
 if __name__ == "__main__":
-    without_crossover_eval()
-    wc_plot()
+    v320_no_cross_eval()
