@@ -35,3 +35,35 @@ def plot_compare_succession():
     configs = ev.generate_configs(get_compare_succession_spec(), group_by=gb)
     dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=cd)
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=cd)
+
+
+def get_v320_spec():
+    return {
+        "population_size": [100],
+        "selection": ["roulette"],
+        "mutation": ["single_swap"],
+        "crossover": ["injection"],
+        "succession": ["best", "best_then_random"],
+        "iters": [15000],
+        "input_file": ["graphs/320_0.009_1.rgraph"],
+    }
+
+
+def v320_eval():
+    prefix = "results/320_009_1/"
+    tries = 1
+
+    ev.evaluate(ev.generate_configs(get_v320_spec()), prefix, tries)
+
+
+def v320_plot():
+    prefix = "results/320_009_1/"
+    gb = "succession"
+    configs = ev.generate_configs(get_v320_spec(), group_by=gb)
+    dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
+    dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
+
+
+if __name__ == "__main__":
+    v320_eval()
+    v320_plot()
