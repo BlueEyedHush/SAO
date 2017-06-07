@@ -7,7 +7,6 @@ from collections import defaultdict
 import multiprocessing
 import traceback
 
-import bench_presets
 from solvers import run_framework
 from visualize import save_solution
 
@@ -209,7 +208,7 @@ def time_prognose(start_timestamp, iters_count, current_iters):
         return "%d:%02d:%02d" % (h, m, s)
 
 
-def main(configs, fiters, prefix):
+def evaluate(configs, prefix, fiters):
     ensure_directories(prefix)
 
     init_stats_object()
@@ -243,8 +242,3 @@ def main(configs, fiters, prefix):
             sys.stdout.flush()
 
     print("Finished calculations!")
-
-
-if __name__ == '__main__':
-    configs, out, fiters = bench_presets.eval_compare_succession()
-    main(configs, fiters, out)
