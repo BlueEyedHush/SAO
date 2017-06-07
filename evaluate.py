@@ -9,6 +9,7 @@ import traceback
 
 import bench_presets
 from solvers import run_framework
+from visualize import save_solution
 
 PROCESS_NUM = multiprocessing.cpu_count() - 1
 STATUS_UPDATE_EVERY = 5  # in seconds
@@ -21,7 +22,7 @@ def graph_path_to_filename(path):
     return fname_without_extension
 
 
-def build_cfg_filepath(config, cfg_dir):
+def get_title(config):
     graph_fname = graph_path_to_filename(config['input_file'])
 
     filename = "{}_{}_{}_{}_{}_{}_{}_{}.csv".format(
@@ -35,8 +36,27 @@ def build_cfg_filepath(config, cfg_dir):
         config['ffs'],
     )
 
-    full_path = os.path.join(cfg_dir, filename)
+    return filename
+
+
+def ensure_directories(prefix):
+    for f in ["csv", "sl", "plots"]:
+        dir = os.path.join(prefix, f)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+
+def build_csv_filepath(config, cfg_dir):
+    full_path = os.path.join(cfg_dir, "csv", get_title(config) + ".csv")
     return full_path
+
+
+def build_result_filepath(config, dir):
+    return os.path.join(dir, "sl", get_title(config) + ".sl")
+
+
+def build_plot_filepath(filename, prefix):
+    return os.path.join(prefix, "plots", filename + ".png")
 
 
 DEFAULT_TEST_SPEC = dict(
@@ -110,8 +130,8 @@ def init_stats_object():
     stats["finished_configs"] = multiprocessing.Value("i", 0)
 
 
-def calculate_with_config(cfg, iterations, csv_dir):
-    csv_file = build_cfg_filepath(cfg, csv_dir)
+def calculate_with_config(cfg, iterations, prefix):
+    csv_file = build_csv_filepath(cfg, prefix)
 
     results = dict()
     for iteration in xrange(iterations):
@@ -140,6 +160,21 @@ def calculate_with_config(cfg, iterations, csv_dir):
         for i in iteration_results:
             writer.writerow(iteration_results[i])
 
+    r = results.items()
+    (r_h_i, r_h_ao), r_t = r[0], r[1:]
+    best_solution = r_h_ao.best_solution
+    best_fitness = r_h_ao.best_solution_score.to_fitness()
+    best_score_i = r_h_i
+    for i, algo_out in r_t:
+        curr_fitness = algo_out.best_solution_score.to_fitness()
+        if curr_fitness > best_fitness:
+            best_solution = algo_out.best_solution
+            best_fitness = curr_fitness
+            best_score_i = i
+
+    save_solution(best_solution, best_score_i, build_result_filepath(cfg, prefix))
+
+
     with stats["finished_configs"].get_lock():
         stats["finished_configs"].value += 1
 
@@ -147,14 +182,14 @@ def calculate_with_config(cfg, iterations, csv_dir):
 
 
 class PerProcessData():
-    def __init__(self, config, iterations, csv_dir):
+    def __init__(self, config, iterations, prefix):
         self.config = config
         self.iterations = iterations
-        self.csv_dir = csv_dir
+        self.prefix = prefix
 
 def wrapper(ppd):
     try:
-        calculate_with_config(ppd.config, ppd.iterations, ppd.csv_dir)
+        calculate_with_config(ppd.config, ppd.iterations, ppd.prefix)
     except Exception:
         print "Exception occured for config: {}".format(ppd.config)
         traceback.print_exc()
@@ -174,15 +209,13 @@ def time_prognose(start_timestamp, iters_count, current_iters):
         return "%d:%02d:%02d" % (h, m, s)
 
 
-def main(configs, fiters, out):
-    if not os.path.exists(out):
-        print "{} does not exists, creating.".format(out)
-        os.makedirs(out)
+def main(configs, fiters, prefix):
+    ensure_directories(prefix)
 
     init_stats_object()
     configs_count = len(configs)
     iters_count = configs_count * fiters
-    per_config_data = map(lambda c: PerProcessData(config=c, iterations=fiters, csv_dir=out), configs)
+    per_config_data = map(lambda c: PerProcessData(config=c, iterations=fiters, prefix=prefix), configs)
 
     chunk_size = max(len(configs) / PROCESS_NUM, 1)
     print("Using {} processes, chunk size is {}".format(PROCESS_NUM, chunk_size))

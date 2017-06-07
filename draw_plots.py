@@ -6,7 +6,7 @@ if VISUALIZATION_PLOTTING:
 import os.path
 import numpy as np
 import bench_presets
-from evaluate import build_cfg_filepath, generate_configs, graph_path_to_filename
+from evaluate import build_csv_filepath, build_plot_filepath, ensure_directories, graph_path_to_filename
 
 def avg(values):
     return sum(values) / float(len(values))
@@ -30,12 +30,6 @@ def plot_title(config, groupped_by):
     return title[:-1] if title else title
 
 
-def plot_path(plot_name, base_dir):
-    if not os.path.exists(base_dir):
-        os.makedirs(base_dir)
-    return os.path.join(base_dir, plot_name + ".png")
-
-
 def box_plot_builder(data_and_configs, groupped_by, y_limits, add_conf={}):
     iter_gap = add_conf.get("iter_gap", 100)
     y_min, y_max = y_limits
@@ -56,7 +50,7 @@ def box_plot_builder(data_and_configs, groupped_by, y_limits, add_conf={}):
         ax.set_ylabel('Saved %')
         ax.set_title(config[groupped_by])
 
-    plt_title = plot_title(data_and_configs[0][1], groupped_by)
+    plt_title = "bw" + plot_title(data_and_configs[0][1], groupped_by)
 
     fig.tight_layout()
     size_for_fig_title = 0.72
@@ -85,7 +79,7 @@ def line_plot_builder(data_and_configs, groupped_by, y_limits, add_conf={}):
 
         ax.plot(xs, ys, label=label)
 
-    plt_title = plot_title(data_and_configs[0][1], groupped_by)
+    plt_title = "lp" + plot_title(data_and_configs[0][1], groupped_by)
     ax.set_xlabel('Iteration')
     ax.set_ylabel('Saved %')
     ax.legend()
@@ -94,9 +88,11 @@ def line_plot_builder(data_and_configs, groupped_by, y_limits, add_conf={}):
     return fig, plt_title
 
 
-def draw_plots(configs, plot_builder, groupped_by, csv_dir, plot_png_out, add_conf={}):
+def draw_plots(configs, plot_builder, groupped_by, prefix, add_conf={}):
+    ensure_directories(prefix)
+
     def _load_csv_for(config):
-        csv_file = build_cfg_filepath(config, csv_dir)
+        csv_file = build_csv_filepath(config, prefix)
 
         if os.path.isfile(csv_file):
             data = np.genfromtxt(csv_file, delimiter=',')
@@ -130,7 +126,7 @@ def draw_plots(configs, plot_builder, groupped_by, csv_dir, plot_png_out, add_co
         plt.clf()
         fig, title = plot_builder(data_and_configs, groupped_by, (y_min, y_max), add_conf)
 
-        fig.savefig(plot_path(title, plot_png_out))
+        fig.savefig(build_plot_filepath(title, prefix))
         plt.close(fig)
 
 

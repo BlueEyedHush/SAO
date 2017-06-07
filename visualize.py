@@ -1,5 +1,6 @@
 from features import VISUALIZATION_PLOTTING
 
+import sys
 from logging import getLogger
 
 if VISUALIZATION_PLOTTING:
@@ -140,3 +141,41 @@ def visualize_simulation(graph, transitions, solution):
 
     plt.gcf().canvas.mpl_connect('key_press_event', lambda event: on_key(event, args))
     draw_graph(nx_graph, nodes, None, None, edges, positions, labels, solution)
+
+
+def save_solution(solution, iteration_no, path):
+    import cPickle as pickle
+    obj = (solution, iteration_no)
+    pickle.dump(obj, open(path, "wb"), pickle.HIGHEST_PROTOCOL)
+
+
+def load_solution(path):
+    import cPickle as pickle
+    return pickle.load(open(path))
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-sf', '--solution-file',
+                        required=True,
+                        help='file containing solution')
+    parser.add_argument('-in', '--input_file',
+                        required=True,
+                        help='file containing graph')
+    parser.add_argument('-f', '--ffs',
+                        required=True,
+                        help='number of firefighters per step',
+                        type=int)
+    args = parser.parse_args()
+
+    solution, iteration_no = load_solution(args.solution_file)
+
+    import simulation
+    from graph import Graph
+
+    g = Graph.from_file(args.input_file)
+    transitions, score = simulation.simulation(g, solution, [int(v.id) for v in g.get_starting_nodes()], args.ffs)
+    print "Score: {}, found in {} iteration".format(str(score), iteration_no)
+    visualize_simulation(g, transitions, solution)
