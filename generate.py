@@ -22,7 +22,7 @@ def generate_edges(vertices_num, density):
     return edges_num, edges
 
 
-def generate_tree_edges(child_probability=0.6, max_nodes=30):
+def generate_tree_edges(child_probability=0.7, max_nodes=150):
     tree_size = 0
     root = 0
     current_node = 0
@@ -45,6 +45,7 @@ def generate_tree_edges(child_probability=0.6, max_nodes=30):
 
 def generate_file_data(out_file, vertices_num, density, starting_vertices_num, tree=False):
     if tree:
+        # TODO: impossible to pass max_nodes
         edges_num, vertices_num, edges = generate_tree_edges(density)
     else:
         edges_num, edges = generate_edges(vertices_num, density)

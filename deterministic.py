@@ -1,8 +1,7 @@
 from heapq import nlargest
 
-from graph import NodeState, Tree
-from simulation import spreading_finished, spread_fire, simulation
-from visualize import visualize_simulation
+from graph import NodeState
+from simulation import spreading_finished, spread_fire
 
 
 def untouched_subtree(node):

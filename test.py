@@ -1,19 +1,49 @@
-from graph import Graph
+from deterministic import greedy_tree_solution
+from graph import Graph, Tree
 from simulation import simulation
+from solvers import run_framework
 from visualize import visualize_simulation
 
-g = Graph.from_file('graphs/simple.txt')
-solution = [1, 0, 2, 4, 3]
-init_nodes = [4]
 
-g2 = Graph.from_file('graphs/random.txt')
-solution2 = [9, 0, 2, 4, 3, 5, 6, 7, 8, 1]
-init_nodes2 = [3]
+# TODO init_nodes can be taken from graph - remove from every
+# TODO: actually init_nodes should be Nodes rather than ints - why not?
+# TODO get_burning_nodes is not optimal
+# TODO unify Tree and Graph
+# TODO tree generation - improve, unify
+# TODO graphs should be generated as connected
 
-# pick up here whichever variant you like
-p_graph = g2
-p_solution = solution2
-p_init_nodes = init_nodes2
+def genetic_solution(graph_file, ff_per_step):
+    algo_out = run_framework(loggers='',
+                             population_size=100,
+                             selection='roulette',
+                             crossover='injection',
+                             mutation='single_swap',
+                             succession='best',
+                             iters=1000,
+                             ffs=ff_per_step,
+                             input_file=graph_file)
 
-transitions, _, _, _ = simulation(p_graph, p_solution, init_nodes=p_init_nodes, ff_per_step=1)
-visualize_simulation(p_graph, transitions, p_solution)
+    graph = Graph.from_file(graph_file)
+    return graph, algo_out.best_solution
+
+
+def deterministic_solution_for_tree(graph_file, ff_per_step):
+    tree = Tree.from_file(graph_file)
+    init = tree.get_starting_nodes()
+    solution = greedy_tree_solution(tree, [n.id for n in init], ff_per_step=ff_per_step)
+    return tree, solution
+
+
+if __name__ == '__main__':
+    graph_file = 'graphs/tree2.rtree'
+    ff_per_step = 2
+
+    algorithm = genetic_solution
+    # algorithm = deterministic_solution_for_tree
+    graph, solution = algorithm(graph_file, ff_per_step)
+
+    init_nodes = [n.id for n in graph.get_starting_nodes()]
+    transitions, score = simulation(graph, solution, init_nodes=init_nodes, ff_per_step=ff_per_step)
+    print "Nodes saved: {}\nNodes occupied by ff: {}".format(score.nodes_saved, score.nodes_occupied_by_ff)
+
+    visualize_simulation(graph, transitions, solution)
