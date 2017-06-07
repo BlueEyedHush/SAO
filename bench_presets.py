@@ -141,5 +141,36 @@ def v320_no_cross_plot():
     dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
+
+def get_v180():
+    return {
+        "population_size": [100],
+        "selection": ["roulette"],
+        "mutation": ["single_swap"],
+        "crossover": ["single_pmx"],
+        "succession": ["best_then_random"],
+        "iters": [20000],
+        "input_file": ["graphs/180_0.018_2.rgraph"],
+    }
+
+
+def v180_eval():
+    prefix = "results/180_0018_2/"
+    tries = 1
+    spec = get_v180()
+
+    ev.evaluate(ev.generate_configs(spec), prefix, tries)
+
+
+def v180_plot():
+    prefix = "results/180_0018_2/"
+    spec = get_v180()
+    gb = "crossover"
+
+    configs = ev.generate_configs(spec, group_by=gb)
+    dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
+    dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
+
 if __name__ == "__main__":
-    v320_no_cross_eval()
+    v180_eval()
+    v180_plot()
