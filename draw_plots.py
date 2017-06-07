@@ -5,7 +5,6 @@ if VISUALIZATION_PLOTTING:
 
 import os.path
 import numpy as np
-import bench_presets
 from evaluate import build_csv_filepath, build_plot_filepath, ensure_directories, graph_path_to_filename
 
 def avg(values):
@@ -128,7 +127,3 @@ def draw_plots(configs, plot_builder, groupped_by, prefix, add_conf={}):
 
         fig.savefig(build_plot_filepath(title, prefix))
         plt.close(fig)
-
-
-if __name__ == '__main__':
-    bench_presets.plot_compare_succession()
