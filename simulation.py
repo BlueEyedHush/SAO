@@ -12,6 +12,10 @@ class Score():
         self.nodes_saved = nodes_saved
         self.nodes_occupied_by_ff = nodes_occupied_by_ff
 
+    def __str__(self):
+        return "[T: {}, SAVED: {}, SAVED_FF: {}]".format(self.putting_out_time, self.nodes_saved,
+                                                         self.nodes_occupied_by_ff)
+
 
 def set_initial_nodes_on_fire(graph, init_nodes, transitions):
     # we will store initial fire in the very first element

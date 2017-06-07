@@ -14,6 +14,7 @@ mkdir -p "$PACKAGES_PATH"
 export PYTHONPATH="$PYTHONPATH":"$PACKAGES_PATH"
 easy_install --prefix="$PACKAGES_PREFIX" `cat requirements/computation.txt`
 
-python "$BASE_DIR"/evaluate.py
+export PYTHONUNBUFFERED=False
+python "$BASE_DIR"/evaluate.py 2> ERR 1> OUT
 
 popd

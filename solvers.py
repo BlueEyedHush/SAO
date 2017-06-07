@@ -1,32 +1,40 @@
 import argparse
 
-from frameworks import Operators, AlgoIn, ga_framework, DEFAULTS, find_n_best_solutions, random_population
+from frameworks import Operators, AlgoIn, ga_framework, DEFAULTS, random_population, strip_score
 from generate import load_graph
 from graph import Graph
 from logging_configs import configure_logging
-from operator_adapter import wrap_crossover, wrap_mutation, wrap_selection
-from operators import SELECTION, CROSSOVER, MUTATION
-
+from operator_adapter import wrap_crossover, wrap_mutation, wrap_selection, wrap_succession
+from operators import SELECTION, CROSSOVER, MUTATION, SUCCESSION
+from random import sample
 
 class ConfigurableSimpleSolver(object, Operators):
-    def __init__(self, population_size=4, selection_op=None, crossover_op=None, mutation_op=None):
+    def __init__(self, population_size=4, selection_op=None, crossover_op=None, mutation_op=None, succession_op=None,
+                 mutation_count=2):
         super(ConfigurableSimpleSolver, self).__init__()
+
         self.population_size = population_size
+        self.mutation_count = mutation_count
+
         if selection_op is not None:
             self.crossover_selection = wrap_selection(selection_op, 1, 2)
         if crossover_op is not None:
             self.crossover = wrap_crossover(crossover_op)
         if mutation_op is not None:
             self.mutation = wrap_mutation(mutation_op)
+        if succession_op is not None:
+            self.succession = wrap_succession(succession_op, population_size)
+
 
     def population_initialization(self, es):
         return random_population(es, self.population_size)
 
-    def succession(self, es):
-        return find_n_best_solutions(es.population, self.population_size)
+    def mutation_selection(self, es):
+        base_population = strip_score(es.population)
+        return sample(base_population, self.mutation_count)
 
 
-def run_framework(loggers, population_size, selection, crossover, mutation, iters, ffs, graph_props=None,
+def run_framework(loggers, population_size, selection, crossover, mutation, succession, iters, ffs, graph_props=None,
                   input_file=None):
     configure_logging(loggers)
 
@@ -43,6 +51,7 @@ def run_framework(loggers, population_size, selection, crossover, mutation, iter
         selection_op=SELECTION[selection],
         crossover_op=CROSSOVER[crossover],
         mutation_op=MUTATION[mutation],
+        succession_op=SUCCESSION[succession],
     )
     return ga_framework(AlgoIn(g,
                                [int(v.id) for v in g.get_starting_nodes()],
@@ -97,6 +106,10 @@ if __name__ == "__main__":
                         help='mutation operator',
                         choices=MUTATION.keys(),
                         default=MUTATION.keys()[0])
+    parser.add_argument('-oss', '--succession',
+                        help='succession operator',
+                        choices=SUCCESSION.keys(),
+                        default=SUCCESSION.keys()[0])
 
     args = parser.parse_args()
 
@@ -105,6 +118,7 @@ if __name__ == "__main__":
                   args.selection,
                   args.crossover,
                   args.mutation,
+                  args.succession,
                   args.iters,
                   args.ffs,
                   (args.vertices, args.density, args.starting_vertices),
