@@ -10,7 +10,7 @@ import traceback
 from solvers import run_framework
 from visualize import save_solution
 
-MULTIPROCESSING_ENALBED = False
+MULTIPROCESSING_ENALBED = True
 PROCESS_NUM = multiprocessing.cpu_count() - 1
 STATUS_UPDATE_EVERY = 5  # in seconds
 

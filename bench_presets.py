@@ -80,5 +80,37 @@ def v320_eval_compare_all():
     ev.evaluate(ev.generate_configs(spec), prefix, tries)
 
 
+def get_wc_spec():
+    return dict(
+        population_size=[100],
+        selection=['roulette'],
+        crossover=['injection', 'noop'],
+        # 'adjecent_swap' mutation does not perform very well in general, so it is skipped
+        mutation=['single_swap'],
+        succession=['best_then_random'],
+        iters=[15000],
+        ffs=[3],
+        input_file=["graphs/80_035_2.rgraph"],
+    )
+
+
+def without_crossover_eval():
+    prefix = "results/no_crossover1/"
+    spec = get_wc_spec()
+    tries = 3
+
+    ev.evaluate(ev.generate_configs(spec), prefix, tries)
+
+
+def wc_plot():
+    prefix = "results/no_crossover/"
+    spec = get_wc_spec()
+    gb = "crossover"
+
+    configs = ev.generate_configs(spec, group_by=gb)
+    dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
+
+
 if __name__ == "__main__":
-    v320_eval_compare_all()
+    without_crossover_eval()
+    wc_plot()
