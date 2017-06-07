@@ -44,7 +44,7 @@ def get_v320_spec():
         "mutation": ["single_swap"],
         "crossover": ["injection"],
         "succession": ["best", "best_then_random"],
-        "iters": [15000],
+        "iters": [5000],
         "input_file": ["graphs/320_0.009_1.rgraph"],
     }
 
@@ -172,5 +172,4 @@ def v180_plot():
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
 if __name__ == "__main__":
-    v180_eval()
-    v180_plot()
+    pass

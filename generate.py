@@ -22,8 +22,32 @@ def generate_edges(vertices_num, density):
     return edges_num, edges
 
 
-def generate_file_data(out_file, vertices_num, density, starting_vertices_num):
-    edges_num, edges = generate_edges(vertices_num, density)
+def generate_tree_edges(child_probability=0.6, max_nodes=30):
+    tree_size = 0
+    root = 0
+    current_node = 0
+    edges = list()
+
+    stack = [root]
+    while stack:
+        node = stack.pop(0)
+        # try to generate two childs
+        for _ in (0, 1):
+            if random.random() < child_probability and current_node < max_nodes:
+                tree_size += 1
+                current_node += 1
+                child = current_node
+                stack.append(child)
+                edges.append((node, child))
+
+    return tree_size, current_node + 1, edges
+
+
+def generate_file_data(out_file, vertices_num, density, starting_vertices_num, tree=False):
+    if tree:
+        edges_num, vertices_num, edges = generate_tree_edges(density)
+    else:
+        edges_num, edges = generate_edges(vertices_num, density)
     starting_vertices = random.sample(xrange(vertices_num), starting_vertices_num)
 
     with open(out_file, 'w') as f:
