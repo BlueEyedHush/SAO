@@ -8,7 +8,8 @@ from operator_adapter import wrap_crossover, wrap_mutation, wrap_selection, wrap
 from operators import SELECTION, CROSSOVER, MUTATION, SUCCESSION
 from random import sample
 
-class ConfigurableSimpleSolver(object, Operators):
+
+class ConfigurableSimpleSolver(Operators):
     def __init__(self, population_size=4, selection_op=None, crossover_op=None, mutation_op=None, succession_op=None,
                  mutation_count=2):
         super(ConfigurableSimpleSolver, self).__init__()
@@ -24,7 +25,6 @@ class ConfigurableSimpleSolver(object, Operators):
             self.mutation = wrap_mutation(mutation_op)
         if succession_op is not None:
             self.succession = wrap_succession(succession_op, population_size)
-
 
     def population_initialization(self, es):
         return random_population(es, self.population_size)
@@ -54,7 +54,6 @@ def run_framework(loggers, population_size, selection, crossover, mutation, succ
         succession_op=SUCCESSION[succession],
     )
     return ga_framework(AlgoIn(g,
-                               [int(v.id) for v in g.get_starting_nodes()],
                                operators=operators,
                                iter_no=iters,
                                ffs_per_step=ffs,

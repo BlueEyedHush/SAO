@@ -11,7 +11,7 @@ class Graph(object):
     def __init__(self):
         self.nodes_number = 0
         self.nodes = dict()
-        self.starting_nodes = list()
+        self.init_nodes = list()
         super(Graph, self).__init__()
 
     def get_edges(self):
@@ -32,8 +32,8 @@ class Graph(object):
     def get_nodes(self):
         return self.nodes
 
-    def get_starting_nodes(self):
-        return self.starting_nodes
+    def get_init_nodes(self):
+        return self.init_nodes
 
     @classmethod
     def from_file(cls, input_file):
@@ -61,7 +61,7 @@ class Graph(object):
             for line in f:
                 v1, v2 = map(int, line.split())
                 new_instance.nodes[v1].add_neighbor(new_instance.nodes[v2])
-            new_instance.starting_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
+            new_instance.init_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
         return new_instance
 
     def print_graph(self):
@@ -107,7 +107,7 @@ class Tree(Graph):
     def __init__(self):
         self.nodes_number = 0
         self.nodes = dict()
-        self.starting_nodes = list()
+        self.init_nodes = list()
         super(Tree, self).__init__()
 
     @classmethod
@@ -136,7 +136,7 @@ class Tree(Graph):
             for line in f:
                 v1, v2 = map(int, line.split())
                 new_instance.nodes[v1].add_child(new_instance.nodes[v2])
-            new_instance.starting_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
+            new_instance.init_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
         return new_instance
 
 

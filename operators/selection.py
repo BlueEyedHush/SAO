@@ -27,7 +27,7 @@ def tournament_selection(population, k, environment):
 
     :param population: list of tuples (chromosome, AlgoScore)
     :param k: number of individuals to be selected from population
-    :param environment: a tuple (graph, init_nodes, ff_per_step) describing environment in which the solution is to be evaluated
+    :param environment: a tuple (graph, ff_per_step) describing environment in which the solution is to be evaluated
     :return:
     """
 
@@ -50,7 +50,7 @@ def roulette_wheel_selection(population, k, environment):
 
     :param population: list of tuples (chromosome, AlgoScore)
     :param k: number of individuals to be selected from population
-    :param environment: a tuple (graph, init_nodes, ff_per_step) describing environment in which the solution is to be evaluated
+    :param environment: a tuple (graph, ff_per_step) describing environment in which the solution is to be evaluated
     :return:
     """
 
@@ -63,7 +63,7 @@ def rank_selection(population, k, environment):
 
     :param population: list of chromosomes
     :param k: number of individuals to be selected from population
-    :param environment: a tuple (graph, init_nodes, ff_per_step) describing environment in which the solution is to be evaluated
+    :param environment: a tuple (graph, ff_per_step) describing environment in which the solution is to be evaluated
     :return:
     """
 

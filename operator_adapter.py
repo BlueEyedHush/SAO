@@ -25,7 +25,7 @@ def wrap_selection(operator, parent_sets_count, specimen_count):
 
         for i in xrange(parent_sets_count):
             parents = operator(es.population, specimen_count,
-                               (es.params.G, es.params.init_nodes, es.params.ffs_per_step))
+                               (es.params.G, es.params.ffs_per_step))
             parent_sets.append(parents)
 
         return parent_sets
@@ -35,6 +35,6 @@ def wrap_selection(operator, parent_sets_count, specimen_count):
 
 def wrap_succession(operator, population_size):
     def _wrapper(es):
-        return operator(es.population, population_size, (es.params.G, es.params.init_nodes, es.params.ffs_per_step))
+        return operator(es.population, population_size, (es.params.G, es.params.ffs_per_step))
 
     return _wrapper

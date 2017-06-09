@@ -5,7 +5,7 @@ from graph import NodeState
 logger = getLogger("simulation")
 
 
-class Score():
+class Score(object):
     def __init__(self, putting_out_time, nodes_saved, nodes_occupied_by_ff):
         # in iterations
         self.putting_out_time = putting_out_time
@@ -17,12 +17,12 @@ class Score():
                                                          self.nodes_occupied_by_ff)
 
 
-def set_initial_nodes_on_fire(graph, init_nodes, transitions):
+def set_initial_nodes_on_fire(graph, transitions):
     # we will store initial fire in the very first element
     transitions[0] = list()
-    for init_node in init_nodes:
-        graph.nodes[init_node].state = NodeState.BURNING
-        transitions[0].append((init_node, NodeState.BURNING))
+    for init_node in graph.get_init_nodes():
+        init_node.state = NodeState.BURNING
+        transitions[0].append((init_node.id, NodeState.BURNING))
 
     return transitions
 
@@ -77,12 +77,12 @@ def evaluate_result(graph):
     return saved_ff, saved_no_ff
 
 
-def simulation(graph, solution, init_nodes, ff_per_step):
+def simulation(graph, solution, ff_per_step):
     # save nodes transitions to visualize the process
     transitions = dict()
     graph.reset_metadata()
 
-    transitions = set_initial_nodes_on_fire(graph, init_nodes, transitions)
+    transitions = set_initial_nodes_on_fire(graph, transitions)
 
     solution_index = 0
     iterations = 0

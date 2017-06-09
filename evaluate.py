@@ -1,4 +1,3 @@
-
 import csv
 import os
 import time
@@ -182,11 +181,12 @@ def calculate_with_config(cfg, iterations, prefix):
     return True
 
 
-class PerProcessData():
+class PerProcessData(object):
     def __init__(self, config, iterations, prefix):
         self.config = config
         self.iterations = iterations
         self.prefix = prefix
+
 
 def wrapper(ppd):
     try:

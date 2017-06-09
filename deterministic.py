@@ -54,7 +54,7 @@ def parent_untouched_tree(node):
     return node_degree
 
 
-def greedy_tree_solution(graph, init_nodes, ff_per_step):
+def greedy_tree_solution(graph, ff_per_step):
     def greedy_placement(graph, ff_per_step):
 
         # get nodes with highest degree in terms of untouched neighbors
@@ -76,8 +76,8 @@ def greedy_tree_solution(graph, init_nodes, ff_per_step):
     solution = list()
 
     # set initial nodes on fire
-    for init_node in init_nodes:
-        graph.nodes[init_node].state = NodeState.BURNING
+    for init_node in graph.get_init_nodes():
+        init_node.state = NodeState.BURNING
 
     while not spreading_finished(graph):
 
@@ -102,7 +102,7 @@ def greedy_tree_solution(graph, init_nodes, ff_per_step):
     return id_solution
 
 
-def greedy_solution(graph, init_nodes, ff_per_step):
+def greedy_solution(graph, ff_per_step):
     def greedy_placement(graph, ff_per_step):
 
         # determine nodes, which are neighbors to the burning nodes
@@ -128,8 +128,8 @@ def greedy_solution(graph, init_nodes, ff_per_step):
     solution = list()
 
     # set initial nodes on fire
-    for init_node in init_nodes:
-        graph.nodes[init_node].state = NodeState.BURNING
+    for init_node in graph.get_init_nodes():
+        init_node.state = NodeState.BURNING
 
     while not spreading_finished(graph):
 

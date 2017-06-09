@@ -5,11 +5,10 @@ from solvers import run_framework
 from visualize import visualize_simulation
 
 
-# TODO init_nodes can be taken from graph - remove from every
-# TODO: actually init_nodes should be Nodes rather than ints - why not?
 # TODO get_burning_nodes is not optimal
 # TODO tree generation - improve, unify
 # TODO graphs should be generated as connected
+# TODO: remove environment from operators, review adapter
 
 def genetic_solution(graph_file, ff_per_step):
     algo_out = run_framework(loggers='',
@@ -28,8 +27,7 @@ def genetic_solution(graph_file, ff_per_step):
 
 def deterministic_solution_for_tree(graph_file, ff_per_step):
     tree = Tree.from_file(graph_file)
-    init = tree.get_starting_nodes()
-    solution = greedy_tree_solution(tree, [n.id for n in init], ff_per_step=ff_per_step)
+    solution = greedy_tree_solution(tree, ff_per_step=ff_per_step)
     return tree, solution
 
 
@@ -47,8 +45,7 @@ if __name__ == '__main__':
 
     graph, solution = algorithm(graph_file, ff_per_step)
 
-    init_nodes = [n.id for n in graph.get_starting_nodes()]
-    transitions, score = simulation(graph, solution, init_nodes=init_nodes, ff_per_step=ff_per_step)
+    transitions, score = simulation(graph, solution, ff_per_step=ff_per_step)
     print msg
     print "Nodes saved: {}\nNodes occupied by ff: {}".format(score.nodes_saved, score.nodes_occupied_by_ff)
 
