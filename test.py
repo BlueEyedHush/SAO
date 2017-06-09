@@ -1,4 +1,4 @@
-from deterministic import greedy_tree_solution
+from deterministic import greedy_framework, greedy_tree_placement
 from graph import Graph, Tree
 from simulation import simulation
 from solvers import run_framework
@@ -22,7 +22,7 @@ def genetic_solution(graph_file, ff_per_step):
 
 def deterministic_solution_for_tree(graph_file, ff_per_step):
     tree = Tree.from_file(graph_file)
-    solution = greedy_tree_solution(tree, ff_per_step=ff_per_step)
+    solution = greedy_framework(tree, ff_per_step=ff_per_step, placement_function=greedy_tree_placement)
     return tree, solution
 
 
