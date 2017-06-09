@@ -11,7 +11,8 @@ class Graph(object):
     def __init__(self):
         self.nodes_number = 0
         self.nodes = dict()
-        self.starting_nodes = list()
+        self.init_nodes = list()
+        self.burning_nodes = list()
         super(Graph, self).__init__()
 
     def get_edges(self):
@@ -23,17 +24,13 @@ class Graph(object):
         return edges
 
     def get_burning_nodes(self):
-        bnodes = set()
-        for node_id in self.nodes:
-            if self.nodes[node_id].state == NodeState.BURNING:
-                bnodes.add(self.nodes[node_id])
-        return bnodes
+        return self.burning_nodes
 
     def get_nodes(self):
         return self.nodes
 
-    def get_starting_nodes(self):
-        return self.starting_nodes
+    def get_init_nodes(self):
+        return self.init_nodes
 
     @classmethod
     def from_file(cls, input_file):
@@ -61,7 +58,7 @@ class Graph(object):
             for line in f:
                 v1, v2 = map(int, line.split())
                 new_instance.nodes[v1].add_neighbor(new_instance.nodes[v2])
-            new_instance.starting_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
+            new_instance.init_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
         return new_instance
 
     def print_graph(self):
@@ -69,9 +66,18 @@ class Graph(object):
         for node in self.nodes.values():
             logger.info("Node {}: {}".format(node.id, node.state))
 
-    def reset_metadata(self):
+    def reset_state(self):
         for v in self.nodes.values():
-            v.reset_metadata()
+            v.reset_state()
+        self.burning_nodes = list()
+
+    def set_init_nodes_on_fire(self):
+        for node in self.init_nodes:
+            self.set_node_as_burning(node)
+
+    def set_node_as_burning(self, node):
+        self.burning_nodes.append(self.nodes[node.id])
+        node.set_as_burning()
 
 
 class Node(object):
@@ -93,8 +99,11 @@ class Node(object):
         """ Print the graph structure accessible from this node """
         logger.info("Node {}: {}".format(self.id, self.neighbors))
 
-    def reset_metadata(self):
+    def reset_state(self):
         self.state = NodeState.UNTOUCHED
+
+    def set_as_burning(self):
+        self.state = NodeState.BURNING
 
     def __eq__(self, other):
         return self.id == other.id
@@ -103,34 +112,13 @@ class Node(object):
         return "Node({})".format(self.id)
 
 
-# TODO: a lot of this methods could actually be common for graph and tree
-class Tree(object):
+class Tree(Graph):
     def __init__(self):
         self.nodes_number = 0
         self.nodes = dict()
-        self.starting_nodes = list()
+        self.init_nodes = list()
+        self.burning_nodes = list()
         super(Tree, self).__init__()
-
-    def get_burning_nodes(self):
-        bnodes = set()
-        for node_id in self.nodes:
-            if self.nodes[node_id].state == NodeState.BURNING:
-                bnodes.add(self.nodes[node_id])
-        return bnodes
-
-    def get_edges(self):
-        edges = list()
-        for node_id in self.nodes:
-            for neighbor in self.nodes[node_id].get_neighbors():
-                if (neighbor.id, node_id) not in edges:
-                    edges.append((node_id, neighbor.id))
-        return edges
-
-    def get_nodes(self):
-        return self.nodes
-
-    def get_starting_nodes(self):
-        return self.starting_nodes
 
     @classmethod
     def from_file(cls, input_file):
@@ -157,17 +145,12 @@ class Tree(object):
                 new_instance.nodes[node_id] = TreeNode(node_id)
             for line in f:
                 v1, v2 = map(int, line.split())
-                # new_instance.nodes[v1].add_neighbor(new_instance.nodes[v2])
                 new_instance.nodes[v1].add_child(new_instance.nodes[v2])
-            new_instance.starting_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
+            new_instance.init_nodes = [new_instance.nodes[node_id] for node_id in starting_nodes_ids]
         return new_instance
 
-    def reset_metadata(self):
-        for v in self.nodes.values():
-            v.reset_metadata()
 
-
-class TreeNode(object):
+class TreeNode(Node):
     def __init__(self, node_id, value=None, parent=None):
         self.id = node_id
         self.left = None
@@ -175,7 +158,7 @@ class TreeNode(object):
         self.parent = parent
         self.state = NodeState.UNTOUCHED
         self.value = value
-        super(TreeNode, self).__init__()
+        super(TreeNode, self).__init__(node_id, value)
 
     def add_child(self, node):
         if not self.left:
@@ -202,12 +185,6 @@ class TreeNode(object):
         if self.right:
             ngbrs.add(self.right)
         return ngbrs
-
-    def reset_metadata(self):
-        self.state = NodeState.UNTOUCHED
-
-    def __eq__(self, other):
-        return self.id == other.id
 
     def __str__(self):
         return "TreeNode({})".format(self.id)

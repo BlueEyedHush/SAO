@@ -40,8 +40,8 @@ def find_n_best_solutions(population, n=1):
     return nlargest(n, population, key=lambda (specimen, score): score.to_fitness())
 
 
-class Operators():
-    '''
+class Operators(object):
+    """
     Shortcuts:
         es - ExecutionState
 
@@ -82,7 +82,7 @@ class Operators():
     Children are scored as soon as possible. This mean that they are available (with score) for subsequent invocatins
     of crossover & mutation.
 
-    '''
+    """
 
     def __init__(self):
         pass
@@ -112,7 +112,7 @@ class Operators():
         return es.population
 
 
-class AlgoScore():
+class AlgoScore(object):
     def __init__(self, perc_saved_nodes, perc_saved_occupied_by_ff):
         self.perc_saved_nodes = perc_saved_nodes
         self.perc_saved_occupied_by_ff = perc_saved_occupied_by_ff
@@ -143,10 +143,9 @@ class IterBoundSC(StopCondition):
         return i < self.iter_no
 
 
-class AlgoIn():
+class AlgoIn(object):
     def __init__(self,
                  G,
-                 init_nodes,
                  operators=Operators(),
                  iter_no=DEFAULTS["algo_iter_no"],
                  ffs_per_step=DEFAULTS["ffs_per_step"],
@@ -154,7 +153,6 @@ class AlgoIn():
                  stop_condition=None
                  ):
         self.G = G
-        self.init_nodes = init_nodes
         self.ffs_per_step = ffs_per_step
         self.gather_iteration_stats = gather_iteration_stats,
         self.operators = operators
@@ -163,7 +161,7 @@ class AlgoIn():
             self.stop_condition = IterBoundSC(iter_no)
 
 
-class AlgoOut():
+class AlgoOut(object):
     def __init__(self, best_solution, best_solution_score, iteration_results):
         self.best_solution = best_solution
         self.best_solution_score = best_solution_score
@@ -176,7 +174,7 @@ def _process_solution(params, solution, comment="", offer_vis=False):
 
     G = params.G
 
-    transitions, solution_score = simulation(G, solution, params.init_nodes, params.ffs_per_step)
+    transitions, solution_score = simulation(G, solution, params.ffs_per_step)
     score = AlgoScore(perc_saved_nodes=float(solution_score.nodes_saved) / len(G.get_nodes()),
                       perc_saved_occupied_by_ff=float(solution_score.nodes_occupied_by_ff) / len(G.get_nodes()))
 
@@ -189,7 +187,7 @@ def _process_solution(params, solution, comment="", offer_vis=False):
     return score
 
 
-class ExecutionState():
+class ExecutionState(object):
     '''
     Specimen - permutation of node ids
 

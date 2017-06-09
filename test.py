@@ -1,19 +1,47 @@
-from graph import Graph
+from deterministic import greedy_framework, greedy_tree_placement
+from graph import Graph, Tree
 from simulation import simulation
+from solvers import run_framework
 from visualize import visualize_simulation
 
-g = Graph.from_file('graphs/simple.txt')
-solution = [1, 0, 2, 4, 3]
-init_nodes = [4]
 
-g2 = Graph.from_file('graphs/random.txt')
-solution2 = [9, 0, 2, 4, 3, 5, 6, 7, 8, 1]
-init_nodes2 = [3]
+def genetic_solution(graph_file, ff_per_step):
+    algo_out = run_framework(loggers='',
+                             population_size=100,
+                             selection='roulette',
+                             crossover='injection',
+                             mutation='single_swap',
+                             succession='best',
+                             iters=1000,
+                             ffs=ff_per_step,
+                             input_file=graph_file)
 
-# pick up here whichever variant you like
-p_graph = g2
-p_solution = solution2
-p_init_nodes = init_nodes2
+    graph = Graph.from_file(graph_file)
+    return graph, algo_out.best_solution
 
-transitions, _, _, _ = simulation(p_graph, p_solution, init_nodes=p_init_nodes, ff_per_step=1)
-visualize_simulation(p_graph, transitions, p_solution)
+
+def deterministic_solution_for_tree(graph_file, ff_per_step):
+    tree = Tree.from_file(graph_file)
+    solution = greedy_framework(tree, ff_per_step=ff_per_step, placement_function=greedy_tree_placement)
+    return tree, solution
+
+
+if __name__ == '__main__':
+    graph_file = 'graphs/tree2.rtree'
+    ff_per_step = 2
+
+    genetic = True
+    if genetic:
+        algorithm = genetic_solution
+        msg = "Used genetic algorithm"
+    else:
+        algorithm = deterministic_solution_for_tree
+        msg = "Used deterministic algorithm"
+
+    graph, solution = algorithm(graph_file, ff_per_step)
+
+    transitions, score = simulation(graph, solution, ff_per_step=ff_per_step)
+    print msg
+    print "Nodes saved: {}\nNodes occupied by ff: {}".format(score.nodes_saved, score.nodes_occupied_by_ff)
+
+    visualize_simulation(graph, transitions, solution)
