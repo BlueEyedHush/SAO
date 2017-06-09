@@ -8,7 +8,6 @@ from visualize import visualize_simulation
 # TODO init_nodes can be taken from graph - remove from every
 # TODO: actually init_nodes should be Nodes rather than ints - why not?
 # TODO get_burning_nodes is not optimal
-# TODO unify Tree and Graph
 # TODO tree generation - improve, unify
 # TODO graphs should be generated as connected
 
@@ -38,12 +37,19 @@ if __name__ == '__main__':
     graph_file = 'graphs/tree2.rtree'
     ff_per_step = 2
 
-    algorithm = genetic_solution
-    # algorithm = deterministic_solution_for_tree
+    genetic = False
+    if genetic:
+        algorithm = genetic_solution
+        msg = "Used genetic algorithm"
+    else:
+        algorithm = deterministic_solution_for_tree
+        msg = "Used deterministic algorithm"
+
     graph, solution = algorithm(graph_file, ff_per_step)
 
     init_nodes = [n.id for n in graph.get_starting_nodes()]
     transitions, score = simulation(graph, solution, init_nodes=init_nodes, ff_per_step=ff_per_step)
+    print msg
     print "Nodes saved: {}\nNodes occupied by ff: {}".format(score.nodes_saved, score.nodes_occupied_by_ff)
 
     visualize_simulation(graph, transitions, solution)
