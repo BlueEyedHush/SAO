@@ -45,8 +45,8 @@ def generate_tree_edges(child_probability=0.7, max_nodes=150):
 
 def generate_file_data(out_file, vertices_num, density, starting_vertices_num, tree=False):
     if tree:
-        # TODO: impossible to pass max_nodes
-        edges_num, vertices_num, edges = generate_tree_edges(density)
+        # in case of tree vertices_num is maximum number of vertices
+        edges_num, vertices_num, edges = generate_tree_edges(child_probability=density, max_nodes=vertices_num)
     else:
         edges_num, edges = generate_edges(vertices_num, density)
     starting_vertices = random.sample(xrange(vertices_num), starting_vertices_num)
@@ -76,9 +76,9 @@ def load_graph(vertex_no, density, starting_vertices_no=1):
     if not os.path.isfile(graph_file_path):
         generate_file_data(graph_file_path, vertex_no, density, starting_vertices_no)
 
-    g = Graph.from_file(graph_file_path)
+    graph = Graph.from_file(graph_file_path)
 
-    return g
+    return graph
 
 
 if __name__ == '__main__':
