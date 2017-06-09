@@ -99,7 +99,7 @@ class Node(object):
         """ Print the graph structure accessible from this node """
         logger.info("Node {}: {}".format(self.id, self.neighbors))
 
-    def reset_metadata(self):
+    def reset_state(self):
         self.state = NodeState.UNTOUCHED
 
     def set_as_burning(self):
