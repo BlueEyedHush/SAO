@@ -8,7 +8,6 @@ from visualize import visualize_simulation
 # TODO get_burning_nodes is not optimal
 # TODO tree generation - improve, unify
 # TODO graphs should be generated as connected
-# TODO: remove environment from operators, review adapter
 
 def genetic_solution(graph_file, ff_per_step):
     algo_out = run_framework(loggers='',
@@ -35,7 +34,7 @@ if __name__ == '__main__':
     graph_file = 'graphs/tree2.rtree'
     ff_per_step = 2
 
-    genetic = False
+    genetic = True
     if genetic:
         algorithm = genetic_solution
         msg = "Used genetic algorithm"

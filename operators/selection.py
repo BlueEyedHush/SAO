@@ -22,12 +22,11 @@ def _roulette_select(weighted_population, k):
     return result
 
 
-def tournament_selection(population, k, environment):
+def tournament_selection(population, k):
     """
 
     :param population: list of tuples (chromosome, AlgoScore)
     :param k: number of individuals to be selected from population
-    :param environment: a tuple (graph, ff_per_step) describing environment in which the solution is to be evaluated
     :return:
     """
 
@@ -45,12 +44,11 @@ def tournament_selection(population, k, environment):
     return result
 
 
-def roulette_wheel_selection(population, k, environment):
+def roulette_wheel_selection(population, k):
     """
 
     :param population: list of tuples (chromosome, AlgoScore)
     :param k: number of individuals to be selected from population
-    :param environment: a tuple (graph, ff_per_step) describing environment in which the solution is to be evaluated
     :return:
     """
 
@@ -58,12 +56,11 @@ def roulette_wheel_selection(population, k, environment):
     return _roulette_select(population_with_fitness_extracted, k)
 
 
-def rank_selection(population, k, environment):
+def rank_selection(population, k):
     """
 
     :param population: list of chromosomes
     :param k: number of individuals to be selected from population
-    :param environment: a tuple (graph, ff_per_step) describing environment in which the solution is to be evaluated
     :return:
     """
 

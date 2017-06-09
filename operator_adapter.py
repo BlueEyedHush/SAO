@@ -3,6 +3,7 @@
 # * use AlgoScore in operators (provide function for decomposing population)
 # * prepare configurable adapter
 
+
 def wrap_crossover(operator):
     def _wrapper(es, parents):
         parent1, parent2 = parents
@@ -24,8 +25,7 @@ def wrap_selection(operator, parent_sets_count, specimen_count):
         parent_sets = []
 
         for i in xrange(parent_sets_count):
-            parents = operator(es.population, specimen_count,
-                               (es.params.G, es.params.ffs_per_step))
+            parents = operator(es.population, specimen_count)
             parent_sets.append(parents)
 
         return parent_sets
@@ -35,6 +35,6 @@ def wrap_selection(operator, parent_sets_count, specimen_count):
 
 def wrap_succession(operator, population_size):
     def _wrapper(es):
-        return operator(es.population, population_size, (es.params.G, es.params.ffs_per_step))
+        return operator(es.population, population_size)
 
     return _wrapper

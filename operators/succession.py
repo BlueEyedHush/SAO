@@ -3,7 +3,7 @@ from utils import sort, _tuple_to_score
 from frameworks import find_n_best_solutions
 
 
-def rank_succession(population, k, environment):
+def rank_succession(population, k):
     weights_sum = sum(algoscore.to_fitness() for _, algoscore in population)
     sorted_population = sort(population)
 
@@ -20,11 +20,11 @@ def rank_succession(population, k, environment):
     return result
 
 
-def best(population, k, environment):
+def best(population, k):
     return find_n_best_solutions(population, k)
 
 
-def best_then_uniform_succession(population, k, environment, perc_best=0.20):
+def best_then_uniform_succession(population, k, perc_best=0.20):
     sorted_p = sort(population, inv=True)
 
     to_take = int(max(perc_best * k, 1))
