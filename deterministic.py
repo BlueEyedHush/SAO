@@ -75,9 +75,7 @@ def greedy_tree_solution(graph, ff_per_step):
     # TODO: a lot of common code with the other deterministic approach
     solution = list()
 
-    # set initial nodes on fire
-    for init_node in graph.get_init_nodes():
-        init_node.state = NodeState.BURNING
+    graph.set_init_nodes_on_fire()
 
     while not spreading_finished(graph):
 
@@ -127,9 +125,7 @@ def greedy_solution(graph, ff_per_step):
 
     solution = list()
 
-    # set initial nodes on fire
-    for init_node in graph.get_init_nodes():
-        init_node.state = NodeState.BURNING
+    graph.set_init_nodes_on_fire()
 
     while not spreading_finished(graph):
 

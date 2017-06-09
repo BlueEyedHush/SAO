@@ -5,8 +5,6 @@ from solvers import run_framework
 from visualize import visualize_simulation
 
 
-# TODO get_burning_nodes is not optimal
-
 def genetic_solution(graph_file, ff_per_step):
     algo_out = run_framework(loggers='',
                              population_size=100,

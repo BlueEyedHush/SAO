@@ -21,7 +21,7 @@ def set_initial_nodes_on_fire(graph, transitions):
     # we will store initial fire in the very first element
     transitions[0] = list()
     for init_node in graph.get_init_nodes():
-        init_node.state = NodeState.BURNING
+        graph.set_node_as_burning(init_node)
         transitions[0].append((init_node.id, NodeState.BURNING))
 
     return transitions
@@ -59,7 +59,7 @@ def spread_fire(graph, transitions):
     for burning_node in burning_nodes:
         for neighbor in burning_node.get_neighbors():
             if neighbor.state == NodeState.UNTOUCHED:
-                neighbor.state = NodeState.BURNING
+                graph.set_node_as_burning(neighbor)
                 transitions[step].append((neighbor.id, NodeState.BURNING))
 
     return transitions
@@ -80,7 +80,7 @@ def evaluate_result(graph):
 def simulation(graph, solution, ff_per_step):
     # save nodes transitions to visualize the process
     transitions = dict()
-    graph.reset_metadata()
+    graph.reset_state()
 
     transitions = set_initial_nodes_on_fire(graph, transitions)
 

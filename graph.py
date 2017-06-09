@@ -12,6 +12,7 @@ class Graph(object):
         self.nodes_number = 0
         self.nodes = dict()
         self.init_nodes = list()
+        self.burning_nodes = list()
         super(Graph, self).__init__()
 
     def get_edges(self):
@@ -23,11 +24,7 @@ class Graph(object):
         return edges
 
     def get_burning_nodes(self):
-        bnodes = set()
-        for node_id in self.nodes:
-            if self.nodes[node_id].state == NodeState.BURNING:
-                bnodes.add(self.nodes[node_id])
-        return bnodes
+        return self.burning_nodes
 
     def get_nodes(self):
         return self.nodes
@@ -69,9 +66,18 @@ class Graph(object):
         for node in self.nodes.values():
             logger.info("Node {}: {}".format(node.id, node.state))
 
-    def reset_metadata(self):
+    def reset_state(self):
         for v in self.nodes.values():
-            v.reset_metadata()
+            v.reset_state()
+        self.burning_nodes = list()
+
+    def set_init_nodes_on_fire(self):
+        for node in self.init_nodes:
+            self.set_node_as_burning(node)
+
+    def set_node_as_burning(self, node):
+        self.burning_nodes.append(self.nodes[node.id])
+        node.set_as_burning()
 
 
 class Node(object):
@@ -96,6 +102,9 @@ class Node(object):
     def reset_metadata(self):
         self.state = NodeState.UNTOUCHED
 
+    def set_as_burning(self):
+        self.state = NodeState.BURNING
+
     def __eq__(self, other):
         return self.id == other.id
 
@@ -108,6 +117,7 @@ class Tree(Graph):
         self.nodes_number = 0
         self.nodes = dict()
         self.init_nodes = list()
+        self.burning_nodes = list()
         super(Tree, self).__init__()
 
     @classmethod
