@@ -3,6 +3,7 @@
 import argparse
 import os
 import random
+from collections import Counter
 from itertools import combinations
 
 from graph import Graph
@@ -48,7 +49,38 @@ def generate_file_data(out_file, vertices_num, density, starting_vertices_num, t
         # in case of tree vertices_num is maximum number of vertices
         edges_num, vertices_num, edges = generate_tree_edges(child_probability=density, max_nodes=vertices_num)
     else:
+
+        if density < 2 * (float(vertices_num - 1) / (vertices_num * (vertices_num - 1))):
+            raise ValueError("Density too low, cannot generate connected graph")
+
         edges_num, edges = generate_edges(vertices_num, density)
+
+        # make graph connected by connecting unconnected nodes to graph
+        # and removing edges that will not make graph unconnected again
+        # each time we remove an edge we have to check the conditions again
+        while True:
+            nodes_degree = Counter()
+            for v_start, v_end in edges:
+                nodes_degree[v_start] += 1
+                nodes_degree[v_end] += 1
+
+            unconnected_nodes = set([node for node in xrange(vertices_num) if node not in nodes_degree])
+
+            if not unconnected_nodes:
+                break
+
+            # add an edge from unconnected node to a random node
+            edges.append((unconnected_nodes.pop(), random.randint(0, vertices_num - 1)))
+
+            # find each edge which removal will not make graph unconnected
+            redundant_edges = set()
+            for v_start, v_end in edges:
+                if nodes_degree[v_start] >= 2 and nodes_degree[v_end] >= 2:
+                    redundant_edges.add((v_start, v_end))
+
+            # remove one redundant edge
+            edges.remove(redundant_edges.pop())
+
     starting_vertices = random.sample(xrange(vertices_num), starting_vertices_num)
 
     with open(out_file, 'w') as f:
