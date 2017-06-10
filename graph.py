@@ -18,7 +18,7 @@ class Graph(object):
     def get_edges(self):
         edges = list()
         for node_id in self.nodes:
-            for neighbor in self.nodes[node_id].neighbors:
+            for neighbor in self.nodes[node_id].get_neighbors():
                 if (neighbor.id, node_id) not in edges:
                     edges.append((node_id, neighbor.id))
         return edges
