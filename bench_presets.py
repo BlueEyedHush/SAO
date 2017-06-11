@@ -176,8 +176,8 @@ def tree_config():
     return {
         "population_size": [100],
         "selection": ["roulette"],
-        "mutation": ["single_swap", "random_swap"],
-        "crossover": ["multi_injection", "pmx"],
+        "mutation": ["single_swap"],
+        "crossover": ["multi_injection"],
         "succession": ["best_then_random"],
         "iters": [5000],
         "ffs": [4],
