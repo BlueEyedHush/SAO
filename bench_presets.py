@@ -171,5 +171,35 @@ def v180_plot():
     dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
+
+def tree_config():
+    return {
+        "population_size": [100],
+        "selection": ["roulette"],
+        "mutation": ["single_swap"],
+        "crossover": ["multi_injection"],
+        "succession": ["best_then_random"],
+        "iters": [5000],
+        "ffs": [4],
+        "input_file": ["graphs/tree.rtree"],
+    }
+
+
+def tree_eval():
+    prefix = "results/150_tree/"
+    spec = tree_config()
+    fiters = 10
+
+    ev.evaluate(ev.generate_configs(spec), prefix, fiters)
+
+
+def tree_plot(gb="crossover"):
+    prefix = "results/150_tree/"
+    spec = tree_config()
+
+    configs = ev.generate_configs(spec, group_by=gb)
+    dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
+    dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
+
 if __name__ == "__main__":
     pass
