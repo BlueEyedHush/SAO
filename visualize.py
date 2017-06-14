@@ -53,7 +53,7 @@ def draw_graph(graph, untouched_nodes, burning_nodes, defended_nodes, edges, pos
     nx.draw_networkx_edges(graph, pos=positions, edgelist=edges)
     nx.draw_networkx_labels(graph, pos=positions, labels=labels, font_size=labels_font_size)
 
-    plt.show()
+    plt.draw()
 
 
 def draw_next_step(args):
@@ -140,6 +140,7 @@ def visualize_simulation(graph, transitions, solution):
 
     plt.gcf().canvas.mpl_connect('key_press_event', lambda event: on_key(event, args))
     draw_graph(nx_graph, nodes, None, None, edges, positions, labels, solution)
+    plt.show()
 
 
 def save_solution(solution, iteration_no, path):

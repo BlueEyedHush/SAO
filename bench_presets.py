@@ -171,6 +171,25 @@ def v180_plot():
     dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
+def best_80_spec():
+    return {
+        "population_size": [50],
+        "selection": ["roulette"],
+        "mutation": ["single_swap"],
+        "crossover": ["injection"],
+        "succession": ["best_then_random"],
+        "iters": [10000],
+    }
+def best_80_eval():
+    prefix = "results/best_80/"
+    tries = 1
+    spec = best_80_spec()
+
+    ev.evaluate(ev.generate_configs(spec), prefix, tries)
+def best_80_plot():
+    prefix = "results/best_80/"
+    spec = best_80_spec()
+    gb = "crossover"
 
 def tree_config():
     return {
@@ -201,5 +220,6 @@ def tree_plot(gb="crossover"):
     dp.draw_plots(configs, dp.line_plot_builder, groupped_by=gb, prefix=prefix)
     dp.draw_plots(configs, dp.box_plot_builder, groupped_by=gb, prefix=prefix)
 
+    
 if __name__ == "__main__":
-    pass
+    best_80_plot()
